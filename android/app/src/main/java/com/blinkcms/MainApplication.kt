@@ -1,4 +1,4 @@
-package com.blinkcms
+package com.blink.cms
 
 import android.app.Application
 import com.facebook.react.PackageList

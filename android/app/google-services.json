@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1058846645245",
+    "project_id": "blinkcms-ae337",
+    "storage_bucket": "blinkcms-ae337.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1058846645245:android:b6ac815cfb93023c20d794",
+        "android_client_info": {
+          "package_name": "com.blink.cms"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1058846645245-fh7q154ueg2tp5smj46qdrqdl00ontjb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.blink.cms",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "1058846645245-614h8fha6st3qds0mgqmv1cadct9j83v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSaIaZOoRzaDO_omYE2XgyFrst-2nod80"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1058846645245-614h8fha6st3qds0mgqmv1cadct9j83v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

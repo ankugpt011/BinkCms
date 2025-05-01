@@ -1,4 +1,4 @@
-package com.blinkcms
+package com.blink.cms
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
