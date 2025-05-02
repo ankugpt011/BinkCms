@@ -7,13 +7,30 @@ import Apptheme from '../../assets/theme/Apptheme';
 import SummaryReportCard from '../../components/molecules/SummaryReportCard';
 import useApi from '../../apiServices/UseApi';
 import { CategoryList, ConfigList, LocationList, TagsList } from '../../apiServices/apiHelper';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setCategories, setConfigs, setLocations, setTags } from '../../redux/reducer/MetaDataSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from '@react-native-community/netinfo';
+import { SyncPendingSubmissions } from '../../components/molecules/SyncPendingSubmissions';
 
 const Home = () => {
 
   const [selectedTime, setSelectedTime] = useState('1h');
   const dispatch = useDispatch();
+  const userData = useSelector(state => state.login.userData);
+
+  const {callApi: postStoryApi} = useApi({
+    method: 'POST',
+    url: '',
+    manual: true,
+    cmsUrl: true,
+  });
+
+  useEffect(() => {
+    if (userData?.sessionId) {
+      SyncPendingSubmissions(postStoryApi);
+    }
+  }, [userData]);
 
   const {loading, callApi} = useApi({
     method: 'GET',
@@ -23,23 +40,62 @@ const Home = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await callApi(null, CategoryList());
-      const locationres = await callApi(null, LocationList());
-      const Tagsres = await callApi(null,TagsList())
-      const Configres = await callApi(null,ConfigList())
-
-      console.log('CategoryList', res);
-      console.log('locationres', locationres);
-      console.log('Configres', Configres);
-      if (res) dispatch(setCategories(res));
-      if (locationres) dispatch(setLocations(locationres));
-      if (Tagsres) dispatch(setTags(Tagsres));
-      if (Configres) dispatch(setConfigs(Configres));
-      
-
+      try {
+        const net = await NetInfo.fetch();
+        const isConnected = net.isConnected;
+  
+        if (!isConnected) {
+          // Read from AsyncStorage if offline
+          const [cat, loc, tags, config] = await Promise.all([
+            AsyncStorage.getItem('OfflineCategories'),
+            AsyncStorage.getItem('OfflineLocations'),
+            AsyncStorage.getItem('OfflineTags'),
+            AsyncStorage.getItem('OfflineConfigs'),
+          ]);
+  
+          if (cat) dispatch(setCategories(JSON.parse(cat)));
+          if (loc) dispatch(setLocations(JSON.parse(loc)));
+          if (tags) dispatch(setTags(JSON.parse(tags)));
+          if (config) dispatch(setConfigs(JSON.parse(config)));
+          return;
+        }
+  
+        // Online: fetch from API
+        const [res, locationres, Tagsres, Configres] = await Promise.all([
+          callApi(null, CategoryList()),
+          callApi(null, LocationList()),
+          callApi(null, TagsList()),
+          callApi(null, ConfigList()),
+        ]);
+  
+        if (res) {
+          await AsyncStorage.setItem('OfflineCategories', JSON.stringify(res));
+          dispatch(setCategories(res));
+        }
+  
+        if (locationres) {
+          await AsyncStorage.setItem('OfflineLocations', JSON.stringify(locationres));
+          dispatch(setLocations(locationres));
+        }
+  
+        if (Tagsres) {
+          await AsyncStorage.setItem('OfflineTags', JSON.stringify(Tagsres));
+          dispatch(setTags(Tagsres));
+        }
+  
+        if (Configres) {
+          await AsyncStorage.setItem('OfflineConfigs', JSON.stringify(Configres));
+          dispatch(setConfigs(Configres));
+        }
+  
+      } catch (error) {
+        console.error('Error fetching data with offline fallback:', error);
+      }
     };
+  
     fetchData();
   }, [dispatch]);
+  
 
   return (
     <>

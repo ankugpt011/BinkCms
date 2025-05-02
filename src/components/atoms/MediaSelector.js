@@ -1,15 +1,47 @@
-import React, { useState } from 'react';
-import { View, TextInput, Button, Image, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  TextInput,
+  Button,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 import VectorIcon from '../../assets/vectorIcons';
 
-const MediaSelector = ({ onMediaSelect }) => {
+import useApi from '../../apiServices/UseApi';
+import { useSelector } from 'react-redux';
+
+
+const MediaSelector = ({ onMediaSelect, initialMedia, fieldElement }) => {
+
+  console.log('initialMedia',initialMedia,fieldElement)
+
   const [showYoutubeInput, setShowYoutubeInput] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState('');
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(initialMedia || null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const userData = useSelector(state => state.login.userData);
+
+
+
+  useEffect(()=>{
+    setSelectedImage(initialMedia)
+  },[initialMedia])
+
+
+  const { postData } = useApi({ method: 'POST', manual: true });
 
   const handleSelectFromLibrary = async () => {
+    console.log('test1')
     try {
+    console.log('test2')
+      
       const image = await ImagePicker.openPicker({
         width: 800,
         height: 800,
@@ -21,18 +53,64 @@ const MediaSelector = ({ onMediaSelect }) => {
       setSelectedImage(image.path);
       setShowYoutubeInput(false);
 
-      onMediaSelect && onMediaSelect({
-        type: 'image',
-        uri: image.path,
-        mime: image.mime,
-        width: image.width,
-        height: image.height,
-      });
+      setUploading(true);
+    console.log('test3')
 
+      console.log('image njkml,',image)
+      const response = await uploadImage(image);
+      console.log('responsewe',response)
+
+      if (response) {
+        onMediaSelect &&
+          onMediaSelect({
+            type: 'image',
+            uri: image.path,
+            mediaId: response,
+            mime: image.mime,
+          });
+      } else {
+        Alert.alert('Upload Failed', 'Please try again later.');
+      }
+
+      setUploading(false);
     } catch (error) {
+      setUploading(false);
       if (error.code !== 'E_PICKER_CANCELLED') {
         console.warn('Image selection error:', error);
       }
+    }
+  };
+
+  const uploadImage = async (imgData, orientation = null, mediaSource = 'UPLOAD') => {
+    console.log('test4')
+    
+    console.log('imagedfgvhbjnkm',imgData)
+    try {
+      const sessionId = userData?.sessionId
+      const apiName = `/content/servlet/RDESController?command=rdm.FileUpload&sessionId=${sessionId}&uploadType=7&orientation=${orientation}&mediaSource=${mediaSource}`;
+
+      let formData = new FormData();
+      formData.append('photo', {
+        uri: imgData.path,
+        type: imgData.mime,
+        name: imgData.path.split('/').pop(),
+      });
+
+      console.log('formData',formData)
+
+      const response = await postData(formData, apiName, {
+        'Content-Type': 'multipart/form-data',
+        Accept: 'application/json',
+        onUploadProgress: p => {
+          const percent = Math.trunc((p.loaded * 100) / p.total);
+          setUploadProgress(percent);
+        },
+      });
+
+      return response;
+    } catch (err) {
+      console.error('Upload failed:', err);
+      return null;
     }
   };
 
@@ -43,7 +121,7 @@ const MediaSelector = ({ onMediaSelect }) => {
 
   const handleSaveYoutube = () => {
     if (youtubeUrl.trim()) {
-      onMediaSelect && onMediaSelect({ type: 'youtube', url: youtubeUrl.trim() });
+      onMediaSelect && onMediaSelect({ type: 'youtube', mediaId: youtubeUrl.trim() });
     }
   };
 
@@ -54,7 +132,7 @@ const MediaSelector = ({ onMediaSelect }) => {
           <Text style={styles.buttonText}>Add Youtube</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={handleSelectFromLibrary}>
+        <TouchableOpacity style={styles.button} onPress={()=>{handleSelectFromLibrary();console.log('heloocvgbhjnkmnjbhvg')}}>
           <Text style={styles.buttonText}>Select From Library</Text>
         </TouchableOpacity>
       </View>
@@ -71,12 +149,24 @@ const MediaSelector = ({ onMediaSelect }) => {
         </View>
       )}
 
+      {uploading && (
+        <View style={styles.progressContainer}>
+          <ActivityIndicator size="small" color="#0000ff" />
+          <Text style={styles.progressText}>{uploadProgress}%</Text>
+        </View>
+      )}
+
       {selectedImage && (
         <>
-        <Image source={{ uri: selectedImage }} style={styles.previewImage} />
-        <TouchableOpacity onPress={()=>setSelectedImage(null)} style={{position:'absolute',right:5,top:62,backgroundColor:'white',borderRadius:360,padding:2}}>
-            <VectorIcon material-icon name='close' size={20} color='red'/>
-        </TouchableOpacity>
+          <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+          <TouchableOpacity
+             onPress={() => {
+              setSelectedImage(null);
+              onMediaSelect && onMediaSelect(null);
+            }}
+            style={styles.closeIcon}>
+            <VectorIcon material-icon name="close" size={20} color="red" />
+          </TouchableOpacity>
         </>
       )}
     </View>
@@ -119,6 +209,24 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
     borderRadius: 10,
+  },
+  closeIcon: {
+    position: 'absolute',
+    right: 5,
+    top: 62,
+    backgroundColor: 'white',
+    borderRadius: 360,
+    padding: 2,
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    gap: 10,
+  },
+  progressText: {
+    fontSize: 12,
+    color: 'black',
   },
 });
 

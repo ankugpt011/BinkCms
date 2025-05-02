@@ -12,7 +12,7 @@ import FontStyle from '../../assets/theme/FontStyle';
 import Apptheme from '../../assets/theme/Apptheme';
 
 const OtherCategory = ({
-  value = [], // Now expects array of catIds like [947, 245]
+  value = [], // Expects array of string catIds like ["947", "245"]
   onChange,
   data = [],
   placeholder = '-Select Category-',
@@ -23,38 +23,49 @@ const OtherCategory = ({
   const [search, setSearch] = useState('');
   const [tempSelectedIds, setTempSelectedIds] = useState([]);
 
-  // Convert between catIds and full category objects
-  const getCategoryById = (catId) => data.find(cat => cat.catId === catId);
-  const getSelectedCategories = () => value.map(getCategoryById).filter(Boolean);
+  console.log('OtherCategoryvakue',value,data)
 
-  // Initialize temp selection when modal opens
+  // Get full category object by ID
+  const getCategoryById = (catId) =>
+    data.find(cat => String(cat.catId) === String(catId));
+
+  // Convert selected IDs to category objects
+  // const getSelectedCategories = () =>
+  //   value.map(getCategoryById).filter(Boolean);
+  const getSelectedCategories = () =>
+    Array.isArray(value) && data.length > 0
+      ? value.map(getCategoryById).filter(Boolean)
+      : [];
+
+  // Sync modal selections with value (as strings)
   useEffect(() => {
     if (modalVisible) {
-      setTempSelectedIds(value);
+      setTempSelectedIds(value.map(String));
     }
   }, [modalVisible]);
 
   const toggleCategory = (catId) => {
-    setTempSelectedIds(prev => 
-      prev.includes(catId) 
-        ? prev.filter(id => id !== catId) 
-        : [...prev, catId]
+    const idStr = String(catId);
+    setTempSelectedIds(prev =>
+      prev.includes(idStr)
+        ? prev.filter(id => id !== idStr)
+        : [...prev, idStr]
     );
   };
 
-  const isSelected = (catId) => tempSelectedIds.includes(catId);
+  const isSelected = (catId) => tempSelectedIds.includes(String(catId));
 
   const filteredData = data.filter(item =>
     item.name.toLowerCase().includes(search.toLowerCase())
   );
 
   const confirmSelection = () => {
-    onChange(tempSelectedIds); // Pass only the catIds
+    onChange(tempSelectedIds); // Return string array
     setModalVisible(false);
   };
 
   const removeSelected = (catId) => {
-    onChange(value.filter(id => id !== catId));
+    onChange(value.filter(id => id !== String(catId)));
   };
 
   return (
@@ -73,12 +84,13 @@ const OtherCategory = ({
           flexWrap: 'wrap',
           ...containerStyle,
         }}>
-        <View style={{
-          flex: 1,
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-        }}>
+        <View
+          style={{
+            flex: 1,
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+          }}>
           {value.length === 0 ? (
             <Text style={FontStyle.title}>{placeholder}</Text>
           ) : (
@@ -115,19 +127,25 @@ const OtherCategory = ({
         animationType="slide"
         transparent
         onRequestClose={() => setModalVisible(false)}>
-        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'flex-end',
+            backgroundColor: 'rgba(0,0,0,0.5)',
+          }}>
           <TouchableOpacity
             style={{ flex: 1 }}
             activeOpacity={1}
             onPressOut={() => setModalVisible(false)}
           />
-          <View style={{
-            backgroundColor: 'white',
-            borderTopLeftRadius: 16,
-            borderTopRightRadius: 16,
-            padding: 16,
-            maxHeight: '70%',
-          }}>
+          <View
+            style={{
+              backgroundColor: 'white',
+              borderTopLeftRadius: 16,
+              borderTopRightRadius: 16,
+              padding: 16,
+              maxHeight: '70%',
+            }}>
             <TextInput
               placeholder="Search..."
               value={search}
@@ -145,18 +163,23 @@ const OtherCategory = ({
 
             <FlatList
               data={filteredData}
-              keyExtractor={item => item.catId.toString()}
+              keyExtractor={(item) => item.catId.toString()}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  style={{ 
-                    paddingVertical: 12, 
-                    flexDirection: 'row', 
-                    justifyContent: 'space-between' 
+                  style={{
+                    paddingVertical: 12,
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
                   }}
                   onPress={() => toggleCategory(item.catId)}>
                   <Text style={FontStyle.labelMedium}>{item.name}</Text>
                   {isSelected(item.catId) && (
-                    <VectorIcon material-icon name="check" size={22} color="#4CAF50" />
+                    <VectorIcon
+                      material-icon
+                      name="check"
+                      size={22}
+                      color="#4CAF50"
+                    />
                   )}
                 </TouchableOpacity>
               )}

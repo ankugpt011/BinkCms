@@ -15,23 +15,20 @@ import VectorIcon from '../../assets/vectorIcons';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Gap from '../../components/atoms/Gap';
 import useApi from '../../apiServices/UseApi';
-import {FetchStoryApi} from '../../apiServices/apiHelper';
+import {DraftStoryApi, FetchStoryApi} from '../../apiServices/apiHelper';
 import {useSelector} from 'react-redux';
-import { useWindowDimensions } from 'react-native';
+import {useWindowDimensions} from 'react-native';
 import RenderHtml from 'react-native-render-html';
-
-
-
-
-
+import RouteName from '../../navigation/RouteName';
 
 const NewDetailPage = () => {
   const navigation = useNavigation();
   const userData = useSelector(state => state.login.userData);
   const [data, setData] = useState();
-  const { width } = useWindowDimensions();
+  const {width} = useWindowDimensions();
   const route = useRoute();
-  console.log('route', route);
+
+  console.log('route2134', route.params);
   const {loading, callApi} = useApi({
     method: 'GET',
     url: '',
@@ -39,9 +36,22 @@ const NewDetailPage = () => {
   });
 
   const fetchData = useCallback(async () => {
-    const res = await callApi(null, FetchStoryApi(0, 10, '', route.params?.id));
+    let res;
+    const sessionId = userData?.sessionId;
+    if (route?.params?.type === 'Draft') {
+      res = await callApi(
+        null,
+        DraftStoryApi(0, 10, sessionId, 'story-by-id', route.params?.id),
+      );
+      setData(res);
+    } else {
+      res = await callApi(
+        null,
+        FetchStoryApi(0, 10, sessionId, route.params?.id),
+      );
+      setData(res?.news[0]);
+    }
     console.log('resqwertyuio', res);
-    setData(res?.news[0]);
   }, [callApi, route.params?.id]);
 
   useEffect(() => {
@@ -49,19 +59,30 @@ const NewDetailPage = () => {
   }, [userData, route.params?.id]);
 
   const RenderImage = ({item}) => {
-    console.log('item23456789',item.item.url)
+    console.log('item23456789', item.item.url);
     return (
       <Image
-        style={{height: 80, width: 160, borderRadius: 4,backgroundColor:'yellow'}}
+        style={{
+          height: 80,
+          width: 160,
+          borderRadius: 4,
+          backgroundColor: 'yellow',
+        }}
         source={{
           uri: item.item.url,
         }}
-        resizeMode='cover'
+        resizeMode="cover"
       />
     );
   };
 
   const tagsStyles = {
+    div: {
+      color: '#333',       
+      fontSize: 16,        
+      lineHeight: 24,      
+      marginBottom: 12,    
+    },
     p: {
       color: '#333',
       fontSize: 16,
@@ -77,7 +98,6 @@ const NewDetailPage = () => {
       color: '#444',
     },
   };
-  
 
   return (
     <View style={{flex: 1, backgroundColor: 'white'}}>
@@ -104,7 +124,16 @@ const NewDetailPage = () => {
           ]}>
           News Details
         </Text>
-        <View
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate(RouteName.BOTTOM_TAB, {
+              screen: RouteName.CREATE_STORY,
+              params: {
+                data: data,
+                
+              },
+            })
+          }
           style={{
             paddingHorizontal: 6,
             paddingVertical: 6,
@@ -115,7 +144,7 @@ const NewDetailPage = () => {
           <VectorIcon material-icon name="edit" size={14} />
           <Gap row m2 />
           <Text style={FontStyle.titleSmall}>Edit News</Text>
-        </View>
+        </TouchableOpacity>
       </View>
       <ScrollView style={{padding: Apptheme.spacing.marginHorizontal, flex: 1}}>
         <Gap m4 />
@@ -182,6 +211,12 @@ const NewDetailPage = () => {
           </Text>
           <Gap m1 />
           <Text style={FontStyle.labelLarge}>चित्रशाला</Text>
+          <Gap m3 />
+          <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
+            Location
+          </Text>
+          <Gap m1 />
+          <Text style={FontStyle.labelLarge}>{data?.location}</Text>
         </View>
         <Gap m4 />
         <View
@@ -234,12 +269,27 @@ const NewDetailPage = () => {
             Images
           </Text>
           <Gap m1 />
-          <FlatList
-            data={data?.media}
-            renderItem={(item, index) => (
-              <RenderImage item={item} index={index} />
-            )}
-          />
+          {route?.params?.type === 'Draft' ? (
+            <Image
+              style={{
+                height: 80,
+                width: 160,
+                borderRadius: 4,
+                backgroundColor: 'yellow',
+              }}
+              source={{
+                uri: data?.media_ids,
+              }}
+              resizeMode="cover"
+            />
+          ) : (
+            <FlatList
+              data={data?.media}
+              renderItem={(item, index) => (
+                <RenderImage item={item} index={index} />
+              )}
+            />
+          )}
 
           <Gap m3 />
         </View>
@@ -267,11 +317,10 @@ const NewDetailPage = () => {
           </Text>
           <Gap m8 />
           <RenderHtml
-  contentWidth={width}
-  source={{ html: data?.story }}
-  tagsStyles={tagsStyles}
-  
-/>
+            contentWidth={width}
+            source={{html: data?.story}}
+            tagsStyles={tagsStyles}
+          />
           {/* <Text style={FontStyle.labelLarge}>
           {data?.story}
           </Text> */}
@@ -303,8 +352,16 @@ const NewDetailPage = () => {
               justifyContent: 'space-between',
               marginBottom: 8,
             }}>
-            <Text style={[FontStyle.labelLarge, {flex: 1,color:Apptheme.color.subText}]}>ID</Text>
-            <Text style={[FontStyle.labelLarge, {flex: 3}]}>{data?.newsId}</Text>
+            <Text
+              style={[
+                FontStyle.labelLarge,
+                {flex: 1, color: Apptheme.color.subText},
+              ]}>
+              ID
+            </Text>
+            <Text style={[FontStyle.labelLarge, {flex: 3}]}>
+              {data?.newsId || data?.uid}
+            </Text>
           </View>
           <View
             style={{
@@ -312,7 +369,13 @@ const NewDetailPage = () => {
               justifyContent: 'space-between',
               marginBottom: 8,
             }}>
-            <Text style={[FontStyle.labelLarge, {flex: 1,color:Apptheme.color.subText}]}>Heading</Text>
+            <Text
+              style={[
+                FontStyle.labelLarge,
+                {flex: 1, color: Apptheme.color.subText},
+              ]}>
+              Heading
+            </Text>
             <Text style={[FontStyle.labelLarge, {flex: 3}]}>
               {data?.heading}
             </Text>
@@ -323,7 +386,13 @@ const NewDetailPage = () => {
               justifyContent: 'space-between',
               marginBottom: 8,
             }}>
-            <Text style={[FontStyle.labelLarge, {flex: 1,color:Apptheme.color.subText}]}>Date Created</Text>
+            <Text
+              style={[
+                FontStyle.labelLarge,
+                {flex: 1, color: Apptheme.color.subText},
+              ]}>
+              Date Created
+            </Text>
             <Text style={[FontStyle.labelLarge, {flex: 3}]}>
               {data?.date_news}
             </Text>
@@ -334,8 +403,16 @@ const NewDetailPage = () => {
               justifyContent: 'space-between',
               marginBottom: 8,
             }}>
-            <Text style={[FontStyle.labelLarge, {flex: 1,color:Apptheme.color.subText}]}>Created By</Text>
-            <Text style={[FontStyle.labelLarge, {flex: 3}]}>{data?.authorName}</Text>
+            <Text
+              style={[
+                FontStyle.labelLarge,
+                {flex: 1, color: Apptheme.color.subText},
+              ]}>
+              Created By
+            </Text>
+            <Text style={[FontStyle.labelLarge, {flex: 3}]}>
+              {data?.authorName}
+            </Text>
           </View>
         </View>
 
@@ -389,6 +466,4 @@ const NewDetailPage = () => {
 
 export default NewDetailPage;
 
-const styles = StyleSheet.create({
-  
- });
+const styles = StyleSheet.create({});

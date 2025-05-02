@@ -16,7 +16,7 @@ import dayjs from 'dayjs';
 import {useNavigation} from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
 
-const NewsCard = ({id, image, author, title, date, grid}) => {
+const NewsCard = ({id, image, author, title, date, grid, type}) => {
   const formattedDate = dayjs(date).format('MMM DD, YYYY hh:mm A');
   const navigation = useNavigation();
 
@@ -29,6 +29,8 @@ const NewsCard = ({id, image, author, title, date, grid}) => {
   const closeMenu = () => {
     setMenuVisible(false);
   };
+
+  console.log('image123456', image);
 
   return (
     <View style={[styles.card, {width: grid ? '48.5%' : '100%'}]}>
@@ -56,7 +58,7 @@ const NewsCard = ({id, image, author, title, date, grid}) => {
       </View>
       <TouchableOpacity
         onPress={() =>
-          navigation.navigate(RouteName.NEW_DETAIL_PAGE, {id: id})
+          navigation.navigate(RouteName.NEW_DETAIL_PAGE, {id: id, type: type})
         }>
         <Gap m3 />
         <Text style={[FontStyle.labelMedium, styles.author]}>{author}</Text>
@@ -94,18 +96,25 @@ const NewsCard = ({id, image, author, title, date, grid}) => {
               />
               <Text style={styles.menuText}>Delete</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
-              <VectorIcon
-                name="eye-off-outline"
-                size={18}
-                color={Apptheme.color.black}
-              />
-              <Text style={styles.menuText}>Mark Private</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
-              <VectorIcon name="flash" size={18} color={Apptheme.color.black} />
-              <Text style={styles.menuText}>Show Buzz</Text>
-            </TouchableOpacity>
+            {type == 'Draft'?null:
+            <>
+              <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
+                <VectorIcon
+                  name="eye-off-outline"
+                  size={18}
+                  color={Apptheme.color.black}
+                />
+                <Text style={styles.menuText}>Mark Private</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
+                <VectorIcon
+                  name="flash"
+                  size={18}
+                  color={Apptheme.color.black}
+                />
+                <Text style={styles.menuText}>Show Buzz</Text>
+              </TouchableOpacity>
+            </>}
             <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
               <VectorIcon name="link" size={18} color={Apptheme.color.black} />
               <Text style={styles.menuText}>Copy URL</Text>

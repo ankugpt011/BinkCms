@@ -11,13 +11,26 @@ const Location = ({ value, onChange, categories = [],placeholder='-Select Locati
   const [modalVisible, setModalVisible] = useState(false);
   const [search, setSearch] = useState('');
 
+  console.log('valuevaluevalue',value)
+
 //   useEffect(() => {
 //     setSelectedCategory(value);
 //   }, [value]);
 
+ useEffect(() => {
+    if (value && categories.length > 0) {
+      console.log('23456categoriesLocation',categories)
+      const matched = categories.find(item => item.locationId == value);
+      console.log('matchedLocation',matched)
+      setSelectedCategory(matched || null);
+    } else {
+      setSelectedCategory(null);
+    }
+  }, [value, categories]);
+
   const filteredCategories = categories?.filter(item =>
-    item.name.toLowerCase().includes(search.toLowerCase()) ||
-    item.value.toLowerCase().includes(search.toLowerCase())
+    item.name.toLowerCase().includes(search.toLowerCase()) 
+    // item.value.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleSelect = (item) => {

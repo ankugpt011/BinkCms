@@ -11,9 +11,22 @@ const Category = ({ value, onChange, categories = [],placeholder='-Select Catego
   const [modalVisible, setModalVisible] = useState(false);
   const [search, setSearch] = useState('');
 
+  console.log('Categoryvalue',value)
+
+  // useEffect(() => {
+  //   setSelectedCategory(value);
+  // }, [value]);
+
   useEffect(() => {
-    setSelectedCategory(value);
-  }, [value]);
+    if (value && categories.length > 0) {
+      console.log('23456categories',categories)
+      const matched = categories.find(item => item.catId == value);
+      console.log('matched',matched)
+      setSelectedCategory(matched || null);
+    } else {
+      setSelectedCategory(null);
+    }
+  }, [value, categories]);
 
   const filteredCategories = categories?.filter(item =>
     item.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -26,6 +39,8 @@ const Category = ({ value, onChange, categories = [],placeholder='-Select Catego
     onChange?.(item?.catId);
     setModalVisible(false);
   };
+
+  console.log('setSelectedCategory',selectedCategory)
 
   return (
     <View>
@@ -43,7 +58,7 @@ const Category = ({ value, onChange, categories = [],placeholder='-Select Catego
         }}>
         <Text style={[FontStyle.title,{flex:1}]}>
           {selectedCategory?.name || placeholder}{' '}
-          {selectedCategory?.value ? `[ ${selectedCategory?.value} ]` : ''}
+          {/* {selectedCategory?.value ? `[ ${selectedCategory?.value} ]` : ''} */}
         </Text>
         {selectedCategory && (
           <TouchableOpacity 

@@ -12,16 +12,16 @@ import { formatDateTime } from '../../../components/utils';
 
 const PAGE_SIZE = 10;
 
-const Scheduled = ({grid = false ,FilterOption,fromDate,toDate,category,searched = "",tag='',author}) => {
+const Private = ({grid = false ,FilterOption,fromDate,toDate,category,searched = "",tag='',author}) => {
   const userData = useSelector(state => state.login.userData);
   const [storyData, setStoryData] = useState([]);
   const [startIndex, setStartIndex] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
+  console.log('filterOption',FilterOption)
   const formattedFromDate = fromDate ? formatDateTime(fromDate) : '';
-  const formattedToDate = toDate ? formatDateTime(toDate) : '';
-  console.log('filterOptionfilterOption',formattedFromDate,formattedToDate)
+      const formattedToDate = toDate ? formatDateTime(toDate) : '';
 
   const { loading, callApi } = useApi({
     method: 'GET',
@@ -30,12 +30,11 @@ const Scheduled = ({grid = false ,FilterOption,fromDate,toDate,category,searched
   });
 
   const fetchData = useCallback(async (start = 0) => {
-    console.log('hello12345678765432')
     if (!userData?.sessionId || loadingMore || !hasMore) return;
 
     setLoadingMore(true);
-    const res = await callApi(null, FetchStoryApi(start, PAGE_SIZE, userData.sessionId,undefined,'SCHEDULED',formattedFromDate,formattedToDate,category,searched,author,tag));
-    console.log('rescfvbhnjmk',res)
+    const res = await callApi(null, FetchStoryApi(start, PAGE_SIZE, userData.sessionId,undefined,'PRIVATE',formattedFromDate,formattedToDate,category,searched,author,tag));
+    console.log('Privatebhnjmk',res)
     if (res?.news?.length > 0) {
       setStoryData(prev => [...prev, ...res.news]);
       setStartIndex(start + PAGE_SIZE);
@@ -43,7 +42,7 @@ const Scheduled = ({grid = false ,FilterOption,fromDate,toDate,category,searched
       setHasMore(false); // No more data to load
     }
     setLoadingMore(false);
-  }, [userData, callApi, loadingMore, hasMore,fromDate,category,searched,author,tag]);
+  }, [userData, callApi, loadingMore, hasMore,fromDate,toDate,category,searched,author,tag]);
 
   useEffect(() => {
     console.log('useEffect2345')
@@ -102,7 +101,7 @@ const Scheduled = ({grid = false ,FilterOption,fromDate,toDate,category,searched
   );
 };
 
-export default Scheduled;
+export default Private;
 
 const styles = StyleSheet.create({
   rowWrapper: {

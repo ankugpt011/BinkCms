@@ -1,12 +1,25 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import {Dropdown} from 'react-native-element-dropdown';
 import FontStyle from '../../assets/theme/FontStyle';
 
-const CommonTags = ({data = [], onSelect, placeholder = 'Select tags'}) => {
+const CommonTags = ({data = [], onSelect, placeholder = 'Select tags',initialTags}) => {
   const [selectedItems, setSelectedItems] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownValue, setDropdownValue] = useState(null);
+
+  console.log('CommonTagsCommonTags',initialTags)
+  console.log('dataCommonTags',data)
+
+  useEffect(() => {
+    if (initialTags?.length > 0 && data.length > 0) {
+      const matchedTags = data.filter(tag => initialTags.includes(tag.name));
+      console.log('matchedTags',matchedTags)
+      setSelectedItems(matchedTags);
+      // onSelect(matchedTags);
+    }
+  }, [initialTags, data]);
+  
 
   const handleSelect = value => {
     const selectedTag = data.find(tag => tag.id === value);
