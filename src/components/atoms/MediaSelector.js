@@ -81,38 +81,7 @@ const MediaSelector = ({ onMediaSelect, initialMedia, fieldElement }) => {
     }
   };
 
-  const uploadImage = async (imgData, orientation = null, mediaSource = 'UPLOAD') => {
-    console.log('test4')
-    
-    console.log('imagedfgvhbjnkm',imgData)
-    try {
-      const sessionId = userData?.sessionId
-      const apiName = `/content/servlet/RDESController?command=rdm.FileUpload&sessionId=${sessionId}&uploadType=7&orientation=${orientation}&mediaSource=${mediaSource}`;
-
-      let formData = new FormData();
-      formData.append('photo', {
-        uri: imgData.path,
-        type: imgData.mime,
-        name: imgData.path.split('/').pop(),
-      });
-
-      console.log('formData',formData)
-
-      const response = await postData(formData, apiName, {
-        'Content-Type': 'multipart/form-data',
-        Accept: 'application/json',
-        onUploadProgress: p => {
-          const percent = Math.trunc((p.loaded * 100) / p.total);
-          setUploadProgress(percent);
-        },
-      });
-
-      return response;
-    } catch (err) {
-      console.error('Upload failed:', err);
-      return null;
-    }
-  };
+  
 
   const handleAddYoutube = () => {
     setShowYoutubeInput(!showYoutubeInput);

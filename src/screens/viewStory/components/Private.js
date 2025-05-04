@@ -18,6 +18,8 @@ const Private = ({grid = false ,FilterOption,fromDate,toDate,category,searched =
   const [startIndex, setStartIndex] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const { refreshCount } = useSelector(state => state.storyUpdate);
+  console.log('refreshCount',refreshCount)
 
   console.log('filterOption',FilterOption)
   const formattedFromDate = fromDate ? formatDateTime(fromDate) : '';
@@ -52,7 +54,7 @@ const Private = ({grid = false ,FilterOption,fromDate,toDate,category,searched =
       setHasMore(true);
       fetchData(0);
     }
-  }, [userData,fromDate,toDate,category,searched,author,tag]);
+  }, [userData,fromDate,toDate,category,searched,author,tag,refreshCount]);
 
   const handleLoadMore = () => {
     if (!loadingMore && hasMore) {
@@ -71,6 +73,7 @@ const Private = ({grid = false ,FilterOption,fromDate,toDate,category,searched =
       author={item?.authorName}
       title={item?.heading}
       grid={grid}
+      type={'Private'}
     />
   );
 

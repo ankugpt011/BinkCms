@@ -15,12 +15,20 @@ import Gap from '../../components/atoms/Gap';
 import dayjs from 'dayjs';
 import {useNavigation} from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
+import useApi from '../../apiServices/UseApi';
+import { UpdateNewsStatus } from '../../apiServices/apiHelper';
+import { useDispatch, useSelector } from 'react-redux';
+import { triggerStoryRefresh } from '../../redux/reducer/StoryUpdateSlice';
 
-const NewsCard = ({id, image, author, title, date, grid, type}) => {
+const NewsCard = ({id, image, author, title, date, grid, type,}) => {
   const formattedDate = dayjs(date).format('MMM DD, YYYY hh:mm A');
   const navigation = useNavigation();
+  const dispatch = useDispatch();
 
   const [menuVisible, setMenuVisible] = useState(false);
+  const userData = useSelector(state => state.login.userData);
+
+  const { postData } = useApi({ method: 'POST', manual: true });
 
   const handleDotsPress = () => {
     setMenuVisible(true);
@@ -28,6 +36,29 @@ const NewsCard = ({id, image, author, title, date, grid, type}) => {
 
   const closeMenu = () => {
     setMenuVisible(false);
+  };
+
+
+  const handleMarkPrivate = async (status) => {
+    closeMenu();
+    try {
+      const sessionId = userData?.sessionId
+      const response = await postData(null, UpdateNewsStatus(id,status,sessionId));
+      
+      if (response) {
+        console.log('response12345t',response)
+        Alert.alert('Success', 'News marked as private');
+        dispatch(triggerStoryRefresh({
+          id,
+          action: status
+        }));
+        
+      } else {
+        Alert.alert('Error', 'Failed to update news status');
+      }
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Failed to update news status');
+    }
   };
 
   console.log('image123456', image);
@@ -98,13 +129,13 @@ const NewsCard = ({id, image, author, title, date, grid, type}) => {
             </TouchableOpacity>
             {type == 'Draft'?null:
             <>
-              <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
+              <TouchableOpacity style={styles.menuItem}  onPress={()=>handleMarkPrivate(type == 'Published'?'PRIVATE':'APPROVED')}>
                 <VectorIcon
                   name="eye-off-outline"
                   size={18}
                   color={Apptheme.color.black}
                 />
-                <Text style={styles.menuText}>Mark Private</Text>
+                <Text style={styles.menuText}>Mark {type == 'Published'?'PRIVATE':'APPROVED'}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
                 <VectorIcon

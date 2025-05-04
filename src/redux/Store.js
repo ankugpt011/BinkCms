@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 import loginReducer from './reducer/LoginSlice';
 import MetaDataReducer from './reducer/MetaDataSlice'
+import StoryUpdateReducer from './reducer/StoryUpdateSlice'
 
 
 // 👇 Import your slices here
@@ -14,6 +15,7 @@ import MetaDataReducer from './reducer/MetaDataSlice'
 const rootReducer = combineReducers({
     login: loginReducer,
     metaData: MetaDataReducer,
+    storyUpdate: StoryUpdateReducer,
   // Add more reducers here
 });
 

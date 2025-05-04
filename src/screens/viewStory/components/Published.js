@@ -22,6 +22,7 @@ const Published = ({ grid = false ,FilterOption,fromDate,toDate,category,searche
   console.log('filterOption',FilterOption)
   const formattedFromDate = fromDate ? formatDateTime(fromDate) : '';
     const formattedToDate = toDate ? formatDateTime(toDate) : '';
+    const { refreshCount } = useSelector(state => state.storyUpdate);
 
   const { loading, callApi } = useApi({
     method: 'GET',
@@ -52,7 +53,7 @@ const Published = ({ grid = false ,FilterOption,fromDate,toDate,category,searche
       setHasMore(true);
       fetchData(0);
     }
-  }, [userData,fromDate,toDate,category,searched,author,tag]);
+  }, [userData,fromDate,toDate,category,searched,author,tag,refreshCount]);
 
   const handleLoadMore = () => {
     if (!loadingMore && hasMore) {
@@ -71,6 +72,7 @@ const Published = ({ grid = false ,FilterOption,fromDate,toDate,category,searche
       author={item?.authorName}
       title={item?.heading}
       grid={grid}
+      type={"Published"}
     />
   );
 
