@@ -19,6 +19,7 @@ const DraftStory = ({ grid = false ,FilterOption,fromDate,toDate,category,search
   const [startIndex, setStartIndex] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const { refreshCount } = useSelector(state => state.storyUpdate);
 
   const formattedFromDate = fromDate ? formatDateTime(fromDate) : '';
   const formattedToDate = toDate ? formatDateTime(toDate) : '';
@@ -56,7 +57,7 @@ const DraftStory = ({ grid = false ,FilterOption,fromDate,toDate,category,search
       setHasMore(true);
       fetchData(0);
     }
-  }, [userData,fromDate,toDate,category,searched,tag,author]);
+  }, [userData,fromDate,toDate,category,searched,tag,author,refreshCount]);
 
   const handleLoadMore = () => {
     if (!loadingMore && hasMore) {
@@ -88,7 +89,7 @@ const DraftStory = ({ grid = false ,FilterOption,fromDate,toDate,category,search
         keyExtractor={(item, index) => item?.newsId?.toString() || index.toString()}
         numColumns={grid ? 2 : 1}
         columnWrapperStyle={grid ? styles.rowWrapper : null}
-        contentContainerStyle={{paddingBottom:40,paddingTop:FilterOption ? 560: 100,paddingHorizontal:10}}
+        contentContainerStyle={{paddingBottom:40,paddingTop:FilterOption ? 480: 100,paddingHorizontal:10}}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.4}
         ListFooterComponent={

@@ -39,7 +39,8 @@ const Scheduled = ({grid = false ,FilterOption,fromDate,toDate,category,searched
     if (res?.news?.length > 0) {
       setStoryData(prev => [...prev, ...res.news]);
       setStartIndex(start + PAGE_SIZE);
-    } else {
+    } else
+    {
       setHasMore(false); // No more data to load
     }
     setLoadingMore(false);
@@ -64,7 +65,9 @@ const Scheduled = ({grid = false ,FilterOption,fromDate,toDate,category,searched
 
   console.log('startIndex',startIndex)
 
-  const RenderView = ({ item, index }) => (
+  const RenderView = ({ item, index }) => {
+    console.log('itemitemitem',item)
+    return(
     <NewsCard
       id={item?.newsId}
       image={item?.media?.[0]?.url}
@@ -72,8 +75,10 @@ const Scheduled = ({grid = false ,FilterOption,fromDate,toDate,category,searched
       author={item?.authorName}
       title={item?.heading}
       grid={grid}
+      type={'SCHEDULED'}
+      url={item?.url}
     />
-  );
+)}
 
   return (
    
@@ -84,7 +89,7 @@ const Scheduled = ({grid = false ,FilterOption,fromDate,toDate,category,searched
         keyExtractor={(item, index) => item?.newsId?.toString() || index.toString()}
         numColumns={grid ? 2 : 1}
         columnWrapperStyle={grid ? styles.rowWrapper : null}
-        contentContainerStyle={{paddingBottom:40,paddingTop:FilterOption ? 560: 100,paddingHorizontal:10}}
+        contentContainerStyle={{paddingBottom:40,paddingTop:FilterOption ? 480: 100,paddingHorizontal:10}}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.4}
         ListFooterComponent={

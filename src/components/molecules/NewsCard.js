@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Pressable,
   Modal,
+  Alert,
 } from 'react-native';
 import VectorIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Apptheme from '../../assets/theme/Apptheme';
@@ -16,19 +17,20 @@ import dayjs from 'dayjs';
 import {useNavigation} from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
 import useApi from '../../apiServices/UseApi';
-import { UpdateNewsStatus } from '../../apiServices/apiHelper';
-import { useDispatch, useSelector } from 'react-redux';
-import { triggerStoryRefresh } from '../../redux/reducer/StoryUpdateSlice';
+import {deleteNews, deleteStory, UpdateNewsStatus} from '../../apiServices/apiHelper';
+import {useDispatch, useSelector} from 'react-redux';
+import {triggerStoryRefresh} from '../../redux/reducer/StoryUpdateSlice';
 import WebView from 'react-native-webview';
+// import Clipboard from '@react-native-clipboard/clipboard';
 
-
-const NewsCard = ({id, image, author, title, date, grid, type,}) => {
+const NewsCard = ({id, image, author, title, date, grid, type,url}) => {
   const formattedDate = dayjs(date).format('MMM DD, YYYY hh:mm A');
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const [webViewVisible, setWebViewVisible] = useState(false);
-  
-  
+  const {apiKey, apiEndPoint, partnerData} = useSelector(state => state.login);
+
+  console.log('typetypetypetype', apiEndPoint);
 
   const handleEditPress = () => {
     closeMenu();
@@ -41,9 +43,11 @@ const NewsCard = ({id, image, author, title, date, grid, type,}) => {
 
   const [menuVisible, setMenuVisible] = useState(false);
   const userData = useSelector(state => state.login.userData);
+  console.log('userDatauserData',userData)
   const sessionId = userData?.sessionId;
 
-  const { postData } = useApi({ method: 'POST', manual: true });
+  const {postData} = useApi({method: 'POST', manual: true});
+  const {postData:postDeleteData} = useApi({method: 'GET', manual: true});
 
   const handleDotsPress = () => {
     setMenuVisible(true);
@@ -53,21 +57,27 @@ const NewsCard = ({id, image, author, title, date, grid, type,}) => {
     setMenuVisible(false);
   };
 
-
-  const handleMarkPrivate = async (status) => {
+  const handleMarkPrivate = async status => {
     closeMenu();
     try {
-      const sessionId = userData?.sessionId
-      const response = await postData(null, UpdateNewsStatus(id,status,sessionId));
-      
+      const sessionId = userData?.sessionId;
+      const response = await postData(
+        null,
+        UpdateNewsStatus(id, status, sessionId),
+      );
+
       if (response) {
-        console.log('response12345t',response)
-        Alert.alert('Success', 'News marked as private');
-        dispatch(triggerStoryRefresh({
+        console.log('Dispatching triggerStoryRefresh with:', {
           id,
-          action: status
-        }));
-        
+          action: status,
+        });
+        // Alert.alert('Success', 'News marked as private');
+        dispatch(
+          triggerStoryRefresh({
+            id,
+            action: status,
+          }),
+        );
       } else {
         Alert.alert('Error', 'Failed to update news status');
       }
@@ -75,33 +85,97 @@ const NewsCard = ({id, image, author, title, date, grid, type,}) => {
       Alert.alert('Error', error.message || 'Failed to update news status');
     }
   };
+  const handleCopyUrl = () => {
+    // const fullUrl = `${apiEndPoint}${url}`;
+    // Clipboard.setString(fullUrl);
+    // Alert.alert('Copied', 'URL has been copied to clipboard');
+    // closeMenu(); // Optionally close the menu
+  };
+
+  
+
+  const handleDelete = async () => {
+    closeMenu();
+    
+    try {
+      const endpoint = type === 'Draft' ? deleteStory(sessionId, id) : deleteNews(sessionId, id);
+      console.log('endpoint23er',endpoint)
+      const response = await postDeleteData(
+        null, 
+        endpoint, 
+        {method: 'GET'} // Specify GET method here
+      );
+      if (response) {
+        console.log('Story deleted successfully');
+        
+        dispatch(
+          triggerStoryRefresh({
+            id,
+            action: 'DELETED',
+          }),
+        );
+      } else {
+        Alert.alert('Error', 'Failed to delete story');
+      }
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Failed to delete story');
+    }
+  };
 
   console.log('image123456', image);
   const editUrl = `https://stagingdc.hocalwire.in//news/add-news/edit_news_applite.jsp?newsId=${id}&page=1&sessionId=${sessionId}`;
 
-
- 
   return (
     <View style={[styles.card, {width: grid ? '48.5%' : '100%'}]}>
       {/* Image Section */}
       <View style={styles.imageContainer}>
-        <Image source={{uri: image}} style={styles.image} />
+        <Image source={{uri: image}} style={styles.image} resizeMode='cover'/>
         <View style={[styles.overlay, {width: grid ? '95%' : '97%'}]}>
           <Text style={styles.idText}>{id}</Text>
           <View style={styles.iconRow}>
-            <TouchableOpacity onPress={handleEditPress} style={styles.icon}>
-              <VectorIcon
-                name="square-edit-outline"
-                size={14}
-                color={Apptheme.color.black}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.icon}>
+            {type == 'Draft' ? (
+              userData?.can_edit_story ? (
+                <TouchableOpacity
+                  onPress={() => {
+                    type == 'Draft'
+                      ? navigation.navigate(RouteName.NEW_DETAIL_PAGE, {
+                          id: id,
+                          type: type,
+                        })
+                      : handleEditPress;
+                  }}
+                  style={styles.icon}>
+                  <VectorIcon
+                    name="square-edit-outline"
+                    size={14}
+                    color={Apptheme.color.black}
+                  />
+                </TouchableOpacity>
+              ) : null
+            ) : userData?.can_edit_news ? (
+              <TouchableOpacity
+                onPress={() => {
+                  type == 'Draft'
+                    ? navigation.navigate(RouteName.NEW_DETAIL_PAGE, {
+                        id: id,
+                        type: type,
+                      })
+                    : handleEditPress;
+                }}
+                style={styles.icon}>
+                <VectorIcon
+                  name="square-edit-outline"
+                  size={14}
+                  color={Apptheme.color.black}
+                />
+              </TouchableOpacity>
+            ) : null}
+            {/* <TouchableOpacity style={styles.icon}>
               <VectorIcon name="eye" size={14} color={Apptheme.color.black} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.icon}>
               <VectorIcon name="share" size={14} color={Apptheme.color.black} />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </View>
       </View>
@@ -137,7 +211,7 @@ const NewsCard = ({id, image, author, title, date, grid, type,}) => {
         onRequestClose={closeMenu}>
         <Pressable style={styles.modalOverlay} onPress={closeMenu}>
           <View style={styles.menuContainer}>
-            <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => {handleDelete()}}>
               <VectorIcon
                 name="delete"
                 size={18}
@@ -145,26 +219,36 @@ const NewsCard = ({id, image, author, title, date, grid, type,}) => {
               />
               <Text style={styles.menuText}>Delete</Text>
             </TouchableOpacity>
-            {type == 'Draft'?null:
-            <>
-              <TouchableOpacity style={styles.menuItem}  onPress={()=>handleMarkPrivate(type == 'Published'?'PRIVATE':'APPROVED')}>
-                <VectorIcon
-                  name="eye-off-outline"
-                  size={18}
-                  color={Apptheme.color.black}
-                />
-                <Text style={styles.menuText}>Mark {type == 'Published'?'PRIVATE':'APPROVED'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
-                <VectorIcon
-                  name="flash"
-                  size={18}
-                  color={Apptheme.color.black}
-                />
-                <Text style={styles.menuText}>Show Buzz</Text>
-              </TouchableOpacity>
-            </>}
-            <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
+            {console.log('SCHEDULEDSCHEDULEDSCHEDULED', type)}
+            {['Draft', 'SCHEDULED'].includes(type) ? null : (
+              <>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() =>
+                    handleMarkPrivate(
+                      type == 'Published' ? 'PRIVATE' : 'APPROVED',
+                    )
+                  }>
+                  <VectorIcon
+                    name="eye-off-outline"
+                    size={18}
+                    color={Apptheme.color.black}
+                  />
+                  <Text style={styles.menuText}>
+                    Mark {type == 'Published' ? 'PRIVATE' : 'APPROVED'}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
+                  <VectorIcon
+                    name="flash"
+                    size={18}
+                    color={Apptheme.color.black}
+                  />
+                  <Text style={styles.menuText}>Show Buzz</Text>
+                </TouchableOpacity>
+              </>
+            )}
+            <TouchableOpacity  style={styles.menuItem} onPress={handleCopyUrl}>
               <VectorIcon name="link" size={18} color={Apptheme.color.black} />
               <Text style={styles.menuText}>Copy URL</Text>
             </TouchableOpacity>
@@ -179,14 +263,18 @@ const NewsCard = ({id, image, author, title, date, grid, type,}) => {
           <TouchableOpacity style={styles.closeButton} onPress={closeWebView}>
             <VectorIcon name="close" size={24} color={Apptheme.color.black} />
           </TouchableOpacity>
-          {console.log('editURL',editUrl)}
-          <WebView 
-            source={{ uri: editUrl }}
+          {console.log('editURL', editUrl)}
+          <WebView
+            source={{uri: editUrl}}
             style={styles.webView}
             startInLoadingState={true}
             javaScriptEnabled={true}
             domStorageEnabled={true}
             sharedCookiesEnabled={true}
+            // onNavigationStateChange={navState => {
+            //   // Keep track of going back navigation within component
+            //  console.log('onNavigationStateChange====>', navState);
+            //   }}
           />
         </View>
       </Modal>
@@ -198,7 +286,7 @@ export default NewsCard;
 
 const styles = StyleSheet.create({
   card: {
-    height: 270,
+    height: 320,
     // width: '100%',
     backgroundColor: Apptheme.color.background,
     padding: Apptheme.spacing.m3,
@@ -209,13 +297,15 @@ const styles = StyleSheet.create({
     // marginHorizontal:Apptheme.spacing.marginHorizontal
   },
   imageContainer: {
-    height: 150,
+    height: 200,
     borderRadius: 4,
     overflow: 'hidden',
+    backgroundColor:Apptheme.color.imageBackground
   },
   image: {
     height: '100%',
     width: '100%',
+    
   },
   overlay: {
     position: 'absolute',
@@ -289,7 +379,8 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 14,
     color: Apptheme.color.black,
-  }, webViewContainer: {
+  },
+  webViewContainer: {
     flex: 1,
     marginTop: 30, // Add some margin for status bar
   },

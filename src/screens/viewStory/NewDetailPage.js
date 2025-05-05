@@ -1,6 +1,7 @@
 import {
   FlatList,
   Image,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -20,13 +21,27 @@ import {useSelector} from 'react-redux';
 import {useWindowDimensions} from 'react-native';
 import RenderHtml from 'react-native-render-html';
 import RouteName from '../../navigation/RouteName';
+import WebView from 'react-native-webview';
 
 const NewDetailPage = () => {
   const navigation = useNavigation();
   const userData = useSelector(state => state.login.userData);
+  console.log('userData234',userData)
+  const sessionId = userData?.sessionId;
   const [data, setData] = useState();
   const {width} = useWindowDimensions();
   const route = useRoute();
+  const [webViewVisible, setWebViewVisible] = useState(false);
+
+  const handleEditPress = () => {
+    console.log('fghjnkjhgfchvbjn');
+    setWebViewVisible(true);
+  };
+
+  const closeWebView = () => {
+    setWebViewVisible(false);
+  };
+  console.log('route?.params?.id', route?.params?.type);
 
   console.log('route2134', route.params);
   const {loading, callApi} = useApi({
@@ -34,6 +49,8 @@ const NewDetailPage = () => {
     url: '',
     manual: true,
   });
+
+  const editUrl = `https://stagingdc.hocalwire.in//news/add-news/edit_news_applite.jsp?newsId=${route?.params?.id}&page=1&sessionId=${sessionId}`;
 
   const fetchData = useCallback(async () => {
     let res;
@@ -66,7 +83,7 @@ const NewDetailPage = () => {
           height: 80,
           width: 160,
           borderRadius: 4,
-          backgroundColor: 'yellow',
+          backgroundColor: 'white',
         }}
         source={{
           uri: item.item.url,
@@ -78,10 +95,10 @@ const NewDetailPage = () => {
 
   const tagsStyles = {
     div: {
-      color: '#333',       
-      fontSize: 16,        
-      lineHeight: 24,      
-      marginBottom: 12,    
+      color: '#333',
+      fontSize: 16,
+      lineHeight: 24,
+      marginBottom: 12,
     },
     p: {
       color: '#333',
@@ -97,6 +114,17 @@ const NewDetailPage = () => {
       fontStyle: 'italic',
       color: '#444',
     },
+  };
+
+  const handleWebViewNavigation = (navState) => {
+    // Check if the current URL no longer contains the newsId parameter
+    console.log('navState.url',navState.url)
+    const urlHasNewsId = navState.url.includes(`newsId=${route?.params?.id}`);
+    
+    if (!urlHasNewsId) {
+      closeWebView();
+      fetchData(); // Refresh the news data
+    }
   };
 
   return (
@@ -124,27 +152,56 @@ const NewDetailPage = () => {
           ]}>
           News Details
         </Text>
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate(RouteName.BOTTOM_TAB, {
-              screen: RouteName.CREATE_STORY,
-              params: {
-                data: data,
-                
-              },
-            })
-          }
-          style={{
-            paddingHorizontal: 6,
-            paddingVertical: 6,
-            backgroundColor: Apptheme.color.background,
-            borderRadius: 4,
-            flexDirection: 'row',
-          }}>
-          <VectorIcon material-icon name="edit" size={14} />
-          <Gap row m2 />
-          <Text style={FontStyle.titleSmall}>Edit News</Text>
-        </TouchableOpacity>
+
+        {route?.params?.type === 'Draft' ? (
+          userData?.can_edit_story ? (
+            <TouchableOpacity
+              onPress={() => {
+                route?.params?.type == 'Draft'
+                  ? navigation.navigate(RouteName.BOTTOM_TAB, {
+                      screen: RouteName.CREATE_STORY,
+                      params: {
+                        data: data,
+                      },
+                    })
+                  : handleEditPress();
+              }}
+              style={{
+                paddingHorizontal: 6,
+                paddingVertical: 6,
+                backgroundColor: Apptheme.color.background,
+                borderRadius: 4,
+                flexDirection: 'row',
+              }}>
+              <VectorIcon material-icon name="edit" size={14} />
+              <Gap row m2 />
+              <Text style={FontStyle.titleSmall}>Edit News</Text>
+            </TouchableOpacity>
+          ) : null
+        ) : userData?.can_edit_news ? (
+          <TouchableOpacity
+            onPress={() => {
+              route?.params?.type == 'Draft'
+                ? navigation.navigate(RouteName.BOTTOM_TAB, {
+                    screen: RouteName.CREATE_STORY,
+                    params: {
+                      data: data,
+                    },
+                  })
+                : handleEditPress();
+            }}
+            style={{
+              paddingHorizontal: 6,
+              paddingVertical: 6,
+              backgroundColor: Apptheme.color.background,
+              borderRadius: 4,
+              flexDirection: 'row',
+            }}>
+            <VectorIcon material-icon name="edit" size={14} />
+            <Gap row m2 />
+            <Text style={FontStyle.titleSmall}>Edit News</Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
       <ScrollView style={{padding: Apptheme.spacing.marginHorizontal, flex: 1}}>
         <Gap m4 />
@@ -275,10 +332,10 @@ const NewDetailPage = () => {
                 height: 80,
                 width: 160,
                 borderRadius: 4,
-                backgroundColor: 'yellow',
+                backgroundColor: 'white',
               }}
               source={{
-                uri: data?.media_ids,
+                uri: data?.mediaIds,
               }}
               resizeMode="cover"
             />
@@ -460,10 +517,47 @@ const NewDetailPage = () => {
         <Gap ml />
         <Gap ml />
       </ScrollView>
+      <Modal
+        visible={webViewVisible}
+        animationType="slide"
+        onRequestClose={closeWebView}>
+        <View style={styles.webViewContainer}>
+          <TouchableOpacity style={styles.closeButton} onPress={closeWebView}>
+            <VectorIcon name="close" size={24} color={Apptheme.color.black} />
+          </TouchableOpacity>
+          {console.log('editURL', editUrl)}
+          <WebView
+  source={{uri: editUrl}}
+  style={styles.webView}
+  onNavigationStateChange={handleWebViewNavigation}
+  startInLoadingState={true}
+  javaScriptEnabled={true}
+  domStorageEnabled={true}
+  sharedCookiesEnabled={true}
+/>
+        </View>
+      </Modal>
     </View>
   );
 };
 
 export default NewDetailPage;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  webViewContainer: {
+    flex: 1,
+    marginTop: 30, // Add some margin for status bar
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 1,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderRadius: 15,
+    padding: 5,
+  },
+  webView: {
+    flex: 1,
+  },
+});

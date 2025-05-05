@@ -86,7 +86,7 @@ const Private = ({grid = false ,FilterOption,fromDate,toDate,category,searched =
         keyExtractor={(item, index) => item?.newsId?.toString() || index.toString()}
         numColumns={grid ? 2 : 1}
         columnWrapperStyle={grid ? styles.rowWrapper : null}
-        contentContainerStyle={{paddingBottom:40,paddingTop:FilterOption ? 560: 100,paddingHorizontal:10}}
+        contentContainerStyle={{paddingBottom:40,paddingTop:FilterOption ? 480: 100,paddingHorizontal:10}}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.4}
         ListFooterComponent={

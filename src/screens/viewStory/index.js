@@ -239,7 +239,7 @@ const ViewStory = () => {
 
   const Header = () => {
     return (
-      <View style={[styles.header, {height: FilterOption ? 510 : 50}]}>
+      <View style={[styles.header, {height: FilterOption ? 430 : 50}]}>
         <View
           style={{
             flexDirection: 'row',
@@ -446,8 +446,8 @@ const ViewStory = () => {
             <Gap m3 />
 
             {/* Other Search Inputs */}
-            <SearchInput placeholder="Search by Credit" />
-            <Gap m3 />
+            {/* <SearchInput placeholder="Search by Credit" /> */}
+            {/* <Gap m3 /> */}
 
             <SearchInput
               placeholder="Search"
@@ -469,8 +469,8 @@ const ViewStory = () => {
               />
             </View>
 
-            <SearchInput placeholder="Created By" />
-            <Gap m3 />
+            {/* <SearchInput placeholder="Created By" />
+            <Gap m3 /> */}
 
             {/* Action Buttons */}
             <TouchableOpacity style={styles.applyButton} onPress={applyFilters}>

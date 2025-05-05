@@ -12,7 +12,7 @@ const StoryUpdateSlice = createSlice({
   initialState,
   reducers: {
     triggerStoryRefresh: (state, action) => {
-      console.log('')
+      console.log('action.payload')
       state.refreshCount += 1;
       state.lastUpdatedStoryId = action.payload.id;
       state.lastAction = action.payload.action;

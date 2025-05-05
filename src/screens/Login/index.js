@@ -28,7 +28,7 @@ import DeviceInfo from 'react-native-device-info';
 const Login = () => {
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
-  const [partnersCode, setPartnersCode] = useState('');
+  const [partnersCode, setPartnersCode] = useState('OP4JLH12');
   const { partnerData } = useSelector(state => state.login);
   const [partnerSuccess,setPartnerSuccess]=useState(false)
   const dispatch = useDispatch()
@@ -90,7 +90,7 @@ const Login = () => {
         partnerData.partner,
         email,
         password,
-        'login'
+        'login',undefined
       );
   
       console.log('POST URL with query params:', loginUrl);
@@ -149,25 +149,23 @@ const Login = () => {
         type: 'google',
         };
   
-      const response = await googleLogin(null,api_google_register( params.name,
+      const response = await googleLogin(null,LoginApi( partnerData.app,
+        partnerData.partner,
         params.email,
-        params.first_name,
-        params.last_name,
-        params.id,
-        params.image,
-        params.deviceId,
-        params.type));
+        'sdw4we3r34fesfsdgdgfd',
+        'login',params.id));
       console.log('response12345',response)
-  
-      // if (response) {
-      //   dispatch(setLoginData(response));
-      //   navigation.reset({
-      //     index: 0,
-      //     routes: [{ name: RouteName.BOTTOM_TAB }],
-      //   });
-      // } else {
-      //   ToastAndroid.show('Google login failed', ToastAndroid.SHORT);
-      // }
+     
+      if (response) {
+        dispatch(setLoginData(response));
+        navigation.reset({
+          index: 0,
+          routes: [{ name: RouteName.BOTTOM_TAB }],
+        });
+        
+      } else {
+        ToastAndroid.show('Login failed', ToastAndroid.SHORT);
+      }
   
     } catch (error) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
@@ -220,6 +218,7 @@ const Login = () => {
           <Gap m6 />
           <CustomTextInput
             value={partnersCode}
+            // value={partnersCode}
             onChangeText={onChangePartnerCode}
             placeholder="Partners Code"
             RightButton={true}

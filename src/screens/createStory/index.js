@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
   Keyboard,
@@ -29,26 +30,25 @@ import {useSelector} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import ScheduleModal from '../../components/atoms/ScheduleModal';
-import { formatDateTime } from '../../components/utils';
-import { useRoute } from '@react-navigation/native';
+import {formatDateTime} from '../../components/utils';
+import {useRoute} from '@react-navigation/native';
 
 const CreateStory = () => {
   const scrollViewRef = useRef(null);
   const flatListRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const userData = useSelector(state => state.login.userData);
+  console.log('userDatauserDatauserDatauserData',userData)
   const [isDirty, setIsDirty] = useState(false);
   const [data, setData] = useState();
   const [headerData, setHeaderData] = useState([]);
-  const [netStatus,setNetStatus]=useState('')
+  const [netStatus, setNetStatus] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [invalidFields, setInvalidFields] = useState([]);
-  const route = useRoute()
+  const route = useRoute();
   const [initialized, setInitialized] = useState(false);
-  const editValue = route.params?.data
-  console.log('editValue',editValue);
-  
-
+  const editValue = route.params?.data;
+  console.log('editValue', editValue);
 
   const generateId = () => {
     return (
@@ -135,7 +135,7 @@ const CreateStory = () => {
   }, [formValues, isDirty]);
 
   const updateFormValue = (fieldKey, value) => {
-    console.log('formUpdate123')
+    console.log('formUpdate123');
     setFormValues(prev => ({
       ...prev,
       [fieldKey]: value,
@@ -153,7 +153,7 @@ const CreateStory = () => {
 
   const validateMandatoryFields = (sections, formValues) => {
     const mandatoryFields = [];
-    
+
     Object.values(sections).forEach(section => {
       section.forEach(item => {
         item.children.forEach(child => {
@@ -169,26 +169,21 @@ const CreateStory = () => {
   };
 
   const handleSubmit = async (newState = 'DRAFT', extraFields = {}) => {
-
     const missingFields = validateMandatoryFields(data, formValues);
+    console.log('missingFields',missingFields)
 
-
-    
-    if (newState == "APPROVED" || newState == "SCHEDULED" && missingFields.length > 0 ) {
-      ToastAndroid.show(
-        `Please fill mandatory fields`,
-        ToastAndroid.LONG
-      );
+    if (
+      (newState == 'APPROVED' || newState == 'SCHEDULED') && missingFields.length > 0 ) {
+      ToastAndroid.show(`Please fill mandatory fields`, ToastAndroid.LONG);
       return;
     }
-
 
     console.log('Form data:', formValues);
     const body = {
       ...formValues,
       ...extraFields,
       state: newState,
-      ...(editValue && { uid: editValue.uid })
+      ...(editValue && {uid: editValue.uid}),
     };
 
     const net = await NetInfo.fetch();
@@ -215,16 +210,15 @@ const CreateStory = () => {
       }
       console.log('POST Response:', response);
     } catch (error) {
-      console.error('POST Error:', error)
+      console.error('POST Error:', error);
     }
   };
 
-
-  const handleSchedule = (selectedDate) => {
+  const handleSchedule = selectedDate => {
     const formatted = formatDateTime(selectedDate);
     console.log('Scheduled for:', formatted);
     setModalVisible(false);
-    handleSubmit('SCHEDULED', { schedule_time: formatted });
+    handleSubmit('SCHEDULED', {schedule_time: formatted});
     // do something with date (e.g., store in form state)
   };
 
@@ -248,22 +242,21 @@ const CreateStory = () => {
     return () => clearInterval(interval); // cleanup on unmount
   }, [isDirty, formValues]);
 
-
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(async state => {
       if (state.isConnected && userData?.sessionId) {
-        console.log('state.isConnected',state.isConnected)
-        setNetStatus(state.isConnected)
+        console.log('state.isConnected', state.isConnected);
+        setNetStatus(state.isConnected);
         const queue =
           JSON.parse(await AsyncStorage.getItem('pendingSubmissions')) || [];
-  
+
         if (queue.length > 0) {
           ToastAndroid.show(
             'Online detected - syncing pending submissions...',
             ToastAndroid.SHORT,
           );
           console.log('📡 Online detected - syncing pending submissions...');
-  
+
           for (const form of queue) {
             try {
               await postStoryApi(form, CreateStoryApi(true));
@@ -271,7 +264,7 @@ const CreateStory = () => {
               console.error('❌ Failed syncing a form:', err);
             }
           }
-  
+
           await AsyncStorage.removeItem('pendingSubmissions');
           ToastAndroid.show(
             'Offline drafts synced successfully!',
@@ -280,19 +273,18 @@ const CreateStory = () => {
         }
       }
     });
-  
+
     return () => unsubscribe(); // Clean up listener on unmount
   }, [userData]);
 
-
-  const initializeFormValues = (layoutData) => {
+  const initializeFormValues = layoutData => {
     if (initialized || !layoutData) return;
-    
+
     const initialValues = {
       ...formValues,
-      ...(editValue && { uid: editValue.uid })
+      ...(editValue && {uid: editValue.uid}),
     };
-  
+
     // Dynamically map all fields including media
     Object.values(layoutData).forEach(section => {
       section.forEach(group => {
@@ -300,10 +292,11 @@ const CreateStory = () => {
           if (editValue && editValue[field.element] !== undefined) {
             // Handle media fields specifically
             if (field.input_type === 'MEDIA') {
-              initialValues[field.element] = editValue[field.element] || 
-                                            editValue.mediaIds || 
-                                            editValue.media_url || 
-                                            null;
+              initialValues[field.element] =
+                editValue[field.element] ||
+                editValue.mediaIds ||
+                editValue.media_url ||
+                null;
             } else {
               initialValues[field.element] = editValue[field.element];
             }
@@ -311,12 +304,10 @@ const CreateStory = () => {
         });
       });
     });
-  
+
     setFormValues(initialValues);
     setInitialized(true);
   };
-
- 
 
   const onSectionLayout = (event, sectionKey) => {
     sectionOffsets.current[sectionKey] = event.nativeEvent.layout.y;
@@ -348,9 +339,6 @@ const CreateStory = () => {
       setActiveIndex(index);
     }
   };
-
-
-
 
   const RenderHeader = ({item, index}) => {
     const isActive = index === activeIndex;
@@ -396,7 +384,7 @@ const CreateStory = () => {
       </TouchableOpacity>
     );
   };
-  console.log('netStatus',netStatus)
+  console.log('netStatus', netStatus);
 
   return (
     <KeyboardAvoidingView
@@ -406,125 +394,133 @@ const CreateStory = () => {
         <StatusBar backgroundColor={Apptheme.color.primary} />
         <View style={styles.topBar}>
           <Text style={[FontStyle.headingLarge, styles.topBarTitle]}>
-            Create Story {netStatus? 'online':'offline'}
+            Create Story {netStatus ? 'online' : 'offline'}
           </Text>
           <Gap m9 />
           <Gap m3 />
         </View>
 
-        <View style={styles.fixedHeader}>
-          <FlatList
-            ref={flatListRef}
-            data={headerData}
-            renderItem={({item, index}) => (
-              <RenderHeader item={item} index={index} />
-            )}
-            horizontal
-            ItemSeparatorComponent={<Gap row m8 />}
-            contentContainerStyle={styles.headerListContent}
-            showsHorizontalScrollIndicator={false}
-          />
-        </View>
-
-        <ScrollView
-          style={styles.contentScroll}
-          ref={scrollViewRef}
-          onScroll={onScroll}
-          scrollEventThrottle={16}>
-          {data
-            ? Object.entries(data)?.map(([sectionKey, groupList]) => (
-                <View
-                  key={sectionKey}
-                  onLayout={event => onSectionLayout(event, sectionKey)}>
-                  <MainContainer
-                    sections={groupList}
-                    heading={sectionKey}
-                    formValues={formValues}
-                    updateFormValue={updateFormValue}
-                    invalidFields={invalidFields}
-                  />
-                </View>
-              ))
-            : null}
-
-          <Gap m8 />
-
-          <View style={styles.footerActions}>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                gap: 10,
-              }}>
-              <TouchableOpacity  onPress={()=>handleSubmit('DRAFT')} style={styles.actionButton}>
-                <VectorIcon
-                  material-community-icon
-                  name="content-save"
-                  style={styles.icon}
-                  size={16}
-                />
-                <Text style={FontStyle.labelLarge}>Save</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={()=>handleSubmit('SUBMITTED')}
-                style={styles.actionButton}>
-                <VectorIcon
-                  material-community-icon
-                  name="send"
-                  style={styles.icon}
-                  size={16}
-                />
-                <Text style={FontStyle.labelLarge}>Submit for review</Text>
-              </TouchableOpacity>
-            </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                gap: 10,
-              }}>
-              <TouchableOpacity onPress={() => setModalVisible(true)}  style={styles.actionButton}>
-                <VectorIcon
-                  material-community-icon
-                  name="calendar-month"
-                  style={styles.icon}
-                  size={16}
-                />
-                <Text style={FontStyle.labelLarge}>Schedule for later</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={()=>handleSubmit('APPROVED')}
-                style={[
-                  styles.actionButton,
-                  {backgroundColor: Apptheme.color.primary},
-                ]}>
-                <VectorIcon
-                  material-community-icon
-                  name="plus"
-                  style={styles.icon}
-                  size={20}
-                  color="white"
-                />
-                <Text
-                  style={[
-                    FontStyle.labelLarge,
-                    {color: Apptheme.color.background},
-                  ]}>
-                  Publish now
-                </Text>
-              </TouchableOpacity>
-            </View>
+        {data?
+        <>
+          <View style={styles.fixedHeader}>
+            <FlatList
+              ref={flatListRef}
+              data={headerData}
+              renderItem={({item, index}) => (
+                <RenderHeader item={item} index={index} />
+              )}
+              horizontal
+              ItemSeparatorComponent={<Gap row m8 />}
+              contentContainerStyle={styles.headerListContent}
+              showsHorizontalScrollIndicator={false}
+            />
           </View>
-          <ScheduleModal
-        isVisible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onConfirm={(selectedDate)=>handleSchedule(selectedDate)}
-      />
 
-          <Gap m8 />
-        </ScrollView>
+          <ScrollView
+            style={styles.contentScroll}
+            ref={scrollViewRef}
+            onScroll={onScroll}
+            scrollEventThrottle={16}>
+            {data
+              ? Object.entries(data)?.map(([sectionKey, groupList]) => (
+                  <View
+                    key={sectionKey}
+                    onLayout={event => onSectionLayout(event, sectionKey)}>
+                    <MainContainer
+                      sections={groupList}
+                      heading={sectionKey}
+                      formValues={formValues}
+                      updateFormValue={updateFormValue}
+                      invalidFields={invalidFields}
+                    />
+                  </View>
+                ))
+              : null}
+
+            <Gap m8 />
+
+            <View style={styles.footerActions}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  gap: 10,
+                }}>
+                <TouchableOpacity
+                  onPress={() => handleSubmit('DRAFT')}
+                  style={styles.actionButton}>
+                  <VectorIcon
+                    material-community-icon
+                    name="content-save"
+                    style={styles.icon}
+                    size={16}
+                  />
+                  <Text style={FontStyle.labelLarge}>Save</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => handleSubmit('SUBMITTED')}
+                  style={styles.actionButton}>
+                  <VectorIcon
+                    material-community-icon
+                    name="send"
+                    style={styles.icon}
+                    size={16}
+                  />
+                  <Text style={FontStyle.labelLarge}>Submit for review</Text>
+                </TouchableOpacity>
+              </View>
+              {userData?.can_publish_story?
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  gap: 10,
+                }}>
+                <TouchableOpacity
+                  onPress={() => setModalVisible(true)}
+                  style={styles.actionButton}>
+                  <VectorIcon
+                    material-community-icon
+                    name="calendar-month"
+                    style={styles.icon}
+                    size={16}
+                  />
+                  <Text style={FontStyle.labelLarge}>Schedule for later</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => handleSubmit('APPROVED')}
+                  style={[
+                    styles.actionButton,
+                    {backgroundColor: Apptheme.color.primary},
+                  ]}>
+                  <VectorIcon
+                    material-community-icon
+                    name="plus"
+                    style={styles.icon}
+                    size={20}
+                    color="white"
+                  />
+                  <Text
+                    style={[
+                      FontStyle.labelLarge,
+                      {color: Apptheme.color.background},
+                    ]}>
+                    Publish now
+                  </Text>
+                </TouchableOpacity>
+              </View>:null}
+            </View>
+            <ScheduleModal
+              isVisible={modalVisible}
+              onClose={() => setModalVisible(false)}
+              onConfirm={selectedDate => handleSchedule(selectedDate)}
+            />
+
+            <Gap m8 />
+          </ScrollView>
+        </> : <View style={{flex:1,alignItems:'center',justifyContent:'center'}}><ActivityIndicator size="small" color="#0000ff" /></View>}
       </View>
     </KeyboardAvoidingView>
   );

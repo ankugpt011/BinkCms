@@ -17,7 +17,11 @@ import {useNavigation} from '@react-navigation/native';
 import DropdownWithModal from '../../components/atoms/DropdownWithModal';
 import {useSelector} from 'react-redux';
 import useApi from '../../apiServices/UseApi';
-import {GetPromotedNewsUrl, FetchStoryApi, UpdatePromotedNews} from '../../apiServices/apiHelper';
+import {
+  GetPromotedNewsUrl,
+  FetchStoryApi,
+  UpdatePromotedNews,
+} from '../../apiServices/apiHelper';
 import Gap from '../../components/atoms/Gap';
 
 const PromotedNews = () => {
@@ -39,6 +43,8 @@ const PromotedNews = () => {
     loading: promotedLoading,
     callApi: fetchPromotedNews,
   } = useApi({method: 'GET', manual: true});
+
+  console.log('promotedNewspromotedNews', promotedNews);
 
   const {
     data: additionalNews,
@@ -72,7 +78,7 @@ const PromotedNews = () => {
         categoryId, // categoryIds
         undefined, // search
         undefined, // authorIds
-        undefined // tags
+        undefined, // tags
       );
       fetchAdditionalNews(null, url);
     }
@@ -80,36 +86,52 @@ const PromotedNews = () => {
 
   useEffect(() => {
     if (promotedNews?.news) {
-      const updatedSlots = [...newsSlots];
-      promotedNews.news.forEach((item, index) => {
-        if (index < 9) {
-          updatedSlots[index] = item;
-          setSelectedNewsIds(prev => [...prev, item.newsId]);
+      // Initialize all slots as null first
+      const updatedSlots = Array(9).fill(null);
+      const updatedSelectedIds = [];
+
+      // Fill slots based on priority from API response
+      promotedNews.news.forEach(item => {
+        if (item.priority && item.priority >= 1 && item.priority <= 9) {
+          updatedSlots[item.priority - 1] = item;
+          updatedSelectedIds.push(item.newsId);
         }
       });
+
       setNewsSlots(updatedSlots);
+      setSelectedNewsIds(updatedSelectedIds);
     }
   }, [promotedNews]);
 
-  const updatePromotedNewsApi = async (newsIds) => {
-    if (!categoryId || !newsIds.length) return;
-    
+  const updatePromotedNewsApi = async (
+    newsId,
+    priority,
+    action = undefined,
+  ) => {
+    if (!categoryId || !newsId) return;
+
     setUpdating(true);
     try {
       const url = UpdatePromotedNews(
-        newsIds.join(','),
+        newsId,
         categoryId,
-        sessionId
+        sessionId,
+        action, // 'delete' or undefined
+        priority,
       );
-      
+
       const response = await updatePromotedNews(null, url);
-      
-      if (response) {
+      console.log('API Response:', response);
+
+      if (response?.status === 'Success') {
         // Refresh promoted news after successful update
         const promotedUrl = GetPromotedNewsUrl(sessionId, categoryId);
         await fetchPromotedNews(null, promotedUrl);
       } else {
-        Alert.alert('Error', 'Failed to update promoted news');
+        Alert.alert(
+          'Error',
+          response?.message || 'Failed to update promoted news',
+        );
       }
     } catch (error) {
       Alert.alert('Error', error.message || 'Failed to update promoted news');
@@ -120,72 +142,53 @@ const PromotedNews = () => {
 
   const handleSelectNews = async (index, item) => {
     if (!item) return;
-    
-    const updatedSlots = [...newsSlots];
-    const updatedSelectedIds = [...selectedNewsIds];
-    
-    // Remove previous selection if exists
-    if (updatedSlots[index]) {
-      const prevId = updatedSlots[index].newsId;
-      updatedSelectedIds.splice(updatedSelectedIds.indexOf(prevId), 1);
-    }
-    
-    // Add new selection
-    updatedSlots[index] = item;
-    updatedSelectedIds.push(item.newsId);
-    
-    setNewsSlots(updatedSlots);
-    setSelectedNewsIds(updatedSelectedIds);
-    setDropdownVisible(null);
-    
-    // Immediately update the promoted news with the new selection
-    await updatePromotedNewsApi([item.newsId]);
+
+    // Calculate priority (index + 1)
+    const priority = index + 1;
+
+    // Update the API first
+    await updatePromotedNewsApi(item.newsId, priority);
+
+    // The state will be updated automatically when the promotedNews refreshes
   };
 
-  const handleRemoveNews = async (index) => {
-    const updatedSlots = [...newsSlots];
-    const updatedSelectedIds = [...selectedNewsIds];
+  const handleRemoveNews = async index => {
+    const item = newsSlots[index];
+    if (!item) return;
+
     
-    if (updatedSlots[index]) {
-      const prevId = updatedSlots[index].newsId;
-      updatedSelectedIds.splice(updatedSelectedIds.indexOf(prevId), 1);
-      
-      // Update API to remove this news
-      await updatePromotedNewsApi(updatedSelectedIds);
-    }
+    const priority = index + 1;
+
     
-    updatedSlots[index] = null;
-    setNewsSlots(updatedSlots);
-    setSelectedNewsIds(updatedSelectedIds);
+    await updatePromotedNewsApi(item.newsId, priority, 'delete');
+
+    
   };
 
   const RenderItem = ({item, index}) => {
+    const priority = index + 1;
+
     return (
       <View style={styles.rowContainer}>
         <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-          <Text style={styles.priority}>Priority: {index + 1}</Text>
-          {item && (
-            <TouchableOpacity 
+          <Text style={styles.priority}>Priority: {priority}</Text>
+          {item ? (
+            <TouchableOpacity
               onPress={() => handleRemoveNews(index)}
-              disabled={updating}
-            >
-              {updating ? (
-                <ActivityIndicator size="small" color="red" />
-              ) : (
-                <VectorIcon
-                  material-community-icon
-                  name="delete"
-                  size={18}
-                  color="red"
-                />
-              )}
+              disabled={updating}>
+              <VectorIcon
+                material-community-icon
+                name="delete"
+                size={18}
+                color="red"
+              />
             </TouchableOpacity>
-          )}
+          ) : null}
         </View>
         <Gap m2 />
-        
+
         {item ? (
-          <>
+          <TouchableOpacity onPress={() => setDropdownVisible(priority)}>
             <TextInput
               style={styles.input}
               value={`${item.newsId} ${item.heading}`}
@@ -196,18 +199,13 @@ const PromotedNews = () => {
               News Created Date:{' '}
               <Text style={FontStyle.title}>{item.date_news || 'N/A'}</Text>
             </Text>
-          </>
+          </TouchableOpacity>
         ) : (
-          <TouchableOpacity 
-            style={styles.selectButton} 
-            onPress={() => setDropdownVisible(index)}
-            disabled={updating}
-          >
-            {updating ? (
-              <ActivityIndicator size="small" color="#aaa" />
-            ) : (
-              <Text style={{color: '#aaa'}}>Select News</Text>
-            )}
+          <TouchableOpacity
+            style={styles.selectButton}
+            onPress={() => setDropdownVisible(priority)} 
+            disabled={updating}>
+            <Text style={{color: '#aaa'}}>Select News</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -237,7 +235,7 @@ const PromotedNews = () => {
           Promoted News
         </Text>
       </View>
-      
+
       <View style={{padding: Apptheme.spacing.marginHorizontal}}>
         {Array.isArray(categoriesData) && (
           <DropdownWithModal
@@ -255,37 +253,56 @@ const PromotedNews = () => {
           <ActivityIndicator size="large" color={Apptheme.color.primary} />
         ) : (
           <>
-            <FlatList
-              data={newsSlots}
-              keyExtractor={(item, index) => (item?.newsId || 'empty') + index}
-              contentContainerStyle={{paddingBottom: 120}}
-              renderItem={({item, index}) => (
-                <RenderItem item={item} index={index} />
-              )}
-            />
-            
+            {updating ? (
+              <ActivityIndicator size="large" color={Apptheme.color.primary} />
+            ) : (
+              <FlatList
+                data={newsSlots}
+                keyExtractor={(item, index) =>
+                  (item?.newsId || 'empty') + index
+                }
+                contentContainerStyle={{paddingBottom: 120}}
+                renderItem={({item, index}) => (
+                  <RenderItem item={item} index={index} />
+                )}
+              />
+            )}
+
             {/* News Selection Dropdown Modal */}
             <Modal
               transparent
               visible={dropdownVisible !== null}
-              onRequestClose={() => setDropdownVisible(null)}
-            >
+              onRequestClose={() => setDropdownVisible(null)}>
               <View style={styles.modalOverlay}>
                 <View style={styles.dropdownContainer}>
+                  <View style={{justifyContent:'space-between',alignItems:"center" ,flexDirection:'row'}}>
+                    <Text style={FontStyle.headingSmall}>Select News</Text>
+                    <TouchableOpacity onPress={()=>setDropdownVisible(null)}>
+                    <VectorIcon material-icon name='close' size={20}/>
+                    </TouchableOpacity>
+                  </View>
                   {updating ? (
-                    <ActivityIndicator size="large" color={Apptheme.color.primary} />
+                    <ActivityIndicator
+                      size="large"
+                      color={Apptheme.color.primary}
+                    />
                   ) : (
                     <FlatList
-                      data={additionalNews?.news?.filter(
-                        news => !selectedNewsIds.includes(news.newsId)
-                      )}
+                      // data={additionalNews?.news?.filter(
+                      //   news => !selectedNewsIds.includes(news.newsId),
+                      // )}
+                      data={additionalNews?.news}
                       keyExtractor={item => item.newsId}
                       renderItem={({item}) => (
                         <TouchableOpacity
                           style={styles.dropdownItem}
-                          onPress={() => handleSelectNews(dropdownVisible, item)}
-                        >
-                          <Text style={FontStyle.label}>{item.newsId} - {item.heading}</Text>
+                          onPress={() => {
+                            handleSelectNews(dropdownVisible - 1, item); 
+                            setDropdownVisible(null);
+                          }}>
+                          <Text style={FontStyle.label}>
+                            {item.newsId} - {item.heading}
+                          </Text>
                         </TouchableOpacity>
                       )}
                     />
@@ -312,9 +329,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   priority: {
-    fontWeight: 'bold', 
-    marginBottom: 5, 
-    color: 'black'
+    fontWeight: 'bold',
+    marginBottom: 5,
+    color: 'black',
   },
   input: {
     borderWidth: 1,

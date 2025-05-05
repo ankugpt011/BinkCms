@@ -22,16 +22,19 @@ import {useSelector} from 'react-redux';
 import PublicUser from '../atoms/PublicUser';
 import Location from '../atoms/Location';
 
-
-
-
-const RenderItem = ({item, index, formValues, updateFormValue, invalidFields}) => {
+const RenderItem = ({
+  item,
+  index,
+  formValues,
+  updateFormValue,
+  invalidFields,
+}) => {
   const isInvalid = invalidFields.includes(item.element);
   const fieldValue = formValues[item?.element];
-  console.log('formValues12345678',formValues)
+  console.log('formValues12345678', formValues);
 
-  console.log('fieldValue',fieldValue)
-  
+  console.log('fieldValue', fieldValue);
+
   // Redux selectors
   const categoriesData = useSelector(state => state.metaData.categories);
   const locationsData = useSelector(state => state.metaData.locations);
@@ -41,37 +44,55 @@ const RenderItem = ({item, index, formValues, updateFormValue, invalidFields}) =
 
   // State for components that need internal state
   const [selectedAuthor, setSelectedAuthor] = useState(
-    item?.input_type === 'PUBLIC_USER' && fieldValue 
-      ? {name: fieldValue} 
-      : null
+    item?.input_type === 'PUBLIC_USER' && fieldValue
+      ? {name: fieldValue}
+      : null,
   );
 
   // Handle different input types
-  const handleValueChange = (value) => {
+  const handleValueChange = value => {
     console.log(`Updating ${item.element}:`, value);
     updateFormValue(item.element, value);
   };
 
   // Special handler for media fields
-  const handleMediaSelect = (media) => {
-    const mediaValue = media?.mediaId || media?.uri || media?.url;
-    handleValueChange(mediaValue);
+  // const handleMediaSelect = media => {
+  //   console.log('234565432missingFields', media);
+  //   const mediaValue = media?.mediaId || media?.uri || media?.url;
+  //   handleValueChange(mediaValue);
+  // };
+
+  const handleMediaSelect = media => {
+    console.log('Media selected for field:', item.element, 'Data:', media);
+    if (media) {
+      // For image uploads
+      if (media.type === 'image') {
+        handleValueChange(media.mediaId); // or media.uri depending on your needs
+      } 
+      // For YouTube URLs
+      else if (media.type === 'youtube') {
+        handleValueChange(media.mediaId);
+      }
+    } else {
+      // When media is removed
+      handleValueChange(null);
+    }
   };
 
   // Special handler for tags (array to string conversion)
-  const handleTagsSelect = (selectedTags) => {
+  const handleTagsSelect = selectedTags => {
     const tagNamesString = selectedTags.map(tag => tag.name).join(', ');
     handleValueChange(tagNamesString);
   };
 
   // Special handler for date fields
-  const handleDateChange = (date) => {
+  const handleDateChange = date => {
     const dateValue = date instanceof Date ? date : new Date(date);
     handleValueChange(dateValue.toISOString());
   };
 
   // Special handler for story credits
-  const handleCreditsChange = (data) => {
+  const handleCreditsChange = data => {
     Object.entries(data).forEach(([fieldId, value]) => {
       updateFormValue(fieldId, value);
     });
@@ -79,7 +100,7 @@ const RenderItem = ({item, index, formValues, updateFormValue, invalidFields}) =
 
   // Render the appropriate input component based on type
   const renderInputComponent = () => {
-    switch(item?.input_type) {
+    switch (item?.input_type) {
       case 'TEXT_AREA':
         return (
           <TextArea
@@ -109,8 +130,6 @@ const RenderItem = ({item, index, formValues, updateFormValue, invalidFields}) =
         );
 
       case 'CATEGORY':
-        
-
         return (
           <Category
             value={fieldValue}
@@ -120,7 +139,7 @@ const RenderItem = ({item, index, formValues, updateFormValue, invalidFields}) =
         );
 
       case 'OTHER_CATEGORIES':
-        console.log('fieldValueOTHER_CATEGORIES',fieldValue)
+        console.log('fieldValueOTHER_CATEGORIES', fieldValue);
         return (
           <OtherCategory
             // value={Array.isArray(fieldValue) ? fieldValue : []}
@@ -129,7 +148,9 @@ const RenderItem = ({item, index, formValues, updateFormValue, invalidFields}) =
                 ? fieldValue
                 : typeof fieldValue === 'string' && fieldValue.includes(',')
                 ? fieldValue.split(',').map(id => id.trim())
-                : fieldValue ? [String(fieldValue)] : []
+                : fieldValue
+                ? [String(fieldValue)]
+                : []
             }
             onChange={handleValueChange}
             data={categoriesData?.categories || []}
@@ -138,7 +159,7 @@ const RenderItem = ({item, index, formValues, updateFormValue, invalidFields}) =
         );
 
       case 'LOCATION_SELECT':
-        console.log('fieldValueLOCATION_SELECT',fieldValue)
+        console.log('fieldValueLOCATION_SELECT', fieldValue);
         return (
           <Location
             value={fieldValue}
@@ -152,7 +173,7 @@ const RenderItem = ({item, index, formValues, updateFormValue, invalidFields}) =
         return (
           <PublicUser
             value={selectedAuthor}
-            onSelect={(author) => {
+            onSelect={author => {
               setSelectedAuthor(author);
               handleValueChange(author?.name);
             }}
@@ -160,24 +181,25 @@ const RenderItem = ({item, index, formValues, updateFormValue, invalidFields}) =
         );
 
       case 'MEDIA':
-        console.log('fieldValueOTHER_CATEGORIESMEDIA',fieldValue)
+        console.log('fieldValueOTHER_CATEGORIESMEDIA', fieldValue);
 
         return (
-          <MediaSelector 
-      onMediaSelect={handleMediaSelect}
-      initialMedia={fieldValue}
-      fieldElement={item.element} // Pass the dynamic field name
-    />
+          <MediaSelector
+            onMediaSelect={handleMediaSelect}
+            initialMedia={fieldValue}
+            fieldElement={item.element} // Pass the dynamic field name
+          />
         );
 
       case 'COMMON_TAGS':
-
-      console.log('COMMON_TAGS',fieldValue)
+        console.log('COMMON_TAGS', fieldValue);
         return (
           <CommonTags
             data={tagsData?.tags || []}
             onSelect={handleTagsSelect}
-            initialTags={fieldValue ? fieldValue.split(',').map(t => t.trim()) : []}
+            initialTags={
+              fieldValue ? fieldValue.split(',').map(t => t.trim()) : []
+            }
             placeholder="Search tags..."
           />
         );
@@ -192,9 +214,9 @@ const RenderItem = ({item, index, formValues, updateFormValue, invalidFields}) =
         );
 
       case 'TEXT_EDITOR':
-        console.log('TEXT_EDITOR',fieldValue)
+        console.log('TEXT_EDITOR', fieldValue);
         return (
-          <TextEditor 
+          <TextEditor
             onChange={handleValueChange}
             initialContent={fieldValue}
           />
@@ -218,17 +240,26 @@ const RenderItem = ({item, index, formValues, updateFormValue, invalidFields}) =
   };
 
   return (
-    <View style={[{
-      overflow: 'visible',
-      zIndex: 1,
-      marginBottom: Apptheme.spacing.m2,
-    }, isInvalid && {
-      borderLeftWidth: 2,
-      borderLeftColor: Apptheme.color.red,
-      paddingLeft: Apptheme.spacing.m2,
-    }]}>
-      <Text style={[FontStyle.titleSmall, isInvalid && {color: Apptheme.color.red}]}>
-        {item?.element_display_name}{item?.is_mandatory ? '*' : ''}
+    <View
+      style={[
+        {
+          overflow: 'visible',
+          zIndex: 1,
+          marginBottom: Apptheme.spacing.m2,
+        },
+        isInvalid && {
+          borderLeftWidth: 2,
+          borderLeftColor: Apptheme.color.red,
+          paddingLeft: Apptheme.spacing.m2,
+        },
+      ]}>
+      <Text
+        style={[
+          FontStyle.titleSmall,
+          isInvalid && {color: Apptheme.color.red},
+        ]}>
+        {item?.element_display_name}
+        {item?.is_mandatory ? '*' : ''}
       </Text>
       <Gap m1 />
       {renderInputComponent()}
@@ -257,7 +288,13 @@ const styles = {
   },
 };
 
-const StoryInputSection = ({item, index,formValues, updateFormValue ,invalidFields}) => {
+const StoryInputSection = ({
+  item,
+  index,
+  formValues,
+  updateFormValue,
+  invalidFields,
+}) => {
   console.log('itemfcgvhbjnkmjbhvgch', item);
   return (
     <View
@@ -278,15 +315,28 @@ const StoryInputSection = ({item, index,formValues, updateFormValue ,invalidFiel
 
       <FlatList
         data={item?.children}
-        renderItem={({item, index}) => <RenderItem item={item} index={index} formValues={formValues}  invalidFields={invalidFields}
-        updateFormValue={updateFormValue} />}
+        renderItem={({item, index}) => (
+          <RenderItem
+            item={item}
+            index={index}
+            formValues={formValues}
+            invalidFields={invalidFields}
+            updateFormValue={updateFormValue}
+          />
+        )}
       />
     </View>
   );
 };
 
-const MainContainer = ({sections, heading, formValues, updateFormValue,invalidFields}) => {
-  console.log('sections12345678', formValues,updateFormValue);
+const MainContainer = ({
+  sections,
+  heading,
+  formValues,
+  updateFormValue,
+  invalidFields,
+}) => {
+  console.log('sections12345678', formValues, updateFormValue);
   if (!formValues) {
     return <Text>Loading...</Text>;
   }
