@@ -17,7 +17,7 @@ export const AuthorListing =(search)=>`/dev/h-api/partner-users?search=${search}
 export const UpdateNewsStatus =(newsId,status,sessionId)=>`/dev/h-api/update-news-status?newsId=${newsId}&state=${status}&sessionId=${sessionId}`
 export const Dashboard =(startTime,endTime,sessionId)=>`/dev//h-api/dashboard?action=all&startTime=${startTime}&endTime=${endTime}&sessionId=${sessionId}`
 export const GetPromotedNewsUrl =(sessionId,categoryId)=>`/dev/h-api/promoted-news?sessionId=${sessionId}&categoryId=${categoryId}&count=8&startIndex=0`
-
+export const UpdateNews =(newsId,sessionId)=>`https://stagingdc.hocalwire.in//news/add-news/edit_news_applite.jsp?newsId=${newsId}&page=1&sessionId=${sessionId}`
 export const CreateStoryApi =(isAutoSave = false)=>`/servlet/AdminController?command=partner.ServletSinglePageStory&isAutoSave=${isAutoSave}&checkTitle=true` 
-
+export const UpdatePromotedNews =(newsIds,categoryId,sessionId)=>`/dev/h-api/update-promoted-news?newsIds=${newsIds}&categoryId=${categoryId}&sessionId=${sessionId}`
 

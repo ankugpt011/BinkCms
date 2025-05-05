@@ -19,14 +19,29 @@ import useApi from '../../apiServices/UseApi';
 import { UpdateNewsStatus } from '../../apiServices/apiHelper';
 import { useDispatch, useSelector } from 'react-redux';
 import { triggerStoryRefresh } from '../../redux/reducer/StoryUpdateSlice';
+import WebView from 'react-native-webview';
+
 
 const NewsCard = ({id, image, author, title, date, grid, type,}) => {
   const formattedDate = dayjs(date).format('MMM DD, YYYY hh:mm A');
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const [webViewVisible, setWebViewVisible] = useState(false);
+  
+  
+
+  const handleEditPress = () => {
+    closeMenu();
+    setWebViewVisible(true);
+  };
+
+  const closeWebView = () => {
+    setWebViewVisible(false);
+  };
 
   const [menuVisible, setMenuVisible] = useState(false);
   const userData = useSelector(state => state.login.userData);
+  const sessionId = userData?.sessionId;
 
   const { postData } = useApi({ method: 'POST', manual: true });
 
@@ -62,7 +77,10 @@ const NewsCard = ({id, image, author, title, date, grid, type,}) => {
   };
 
   console.log('image123456', image);
+  const editUrl = `https://stagingdc.hocalwire.in//news/add-news/edit_news_applite.jsp?newsId=${id}&page=1&sessionId=${sessionId}`;
 
+
+ 
   return (
     <View style={[styles.card, {width: grid ? '48.5%' : '100%'}]}>
       {/* Image Section */}
@@ -71,7 +89,7 @@ const NewsCard = ({id, image, author, title, date, grid, type,}) => {
         <View style={[styles.overlay, {width: grid ? '95%' : '97%'}]}>
           <Text style={styles.idText}>{id}</Text>
           <View style={styles.iconRow}>
-            <TouchableOpacity style={styles.icon}>
+            <TouchableOpacity onPress={handleEditPress} style={styles.icon}>
               <VectorIcon
                 name="square-edit-outline"
                 size={14}
@@ -152,6 +170,25 @@ const NewsCard = ({id, image, author, title, date, grid, type,}) => {
             </TouchableOpacity>
           </View>
         </Pressable>
+      </Modal>
+      <Modal
+        visible={webViewVisible}
+        animationType="slide"
+        onRequestClose={closeWebView}>
+        <View style={styles.webViewContainer}>
+          <TouchableOpacity style={styles.closeButton} onPress={closeWebView}>
+            <VectorIcon name="close" size={24} color={Apptheme.color.black} />
+          </TouchableOpacity>
+          {console.log('editURL',editUrl)}
+          <WebView 
+            source={{ uri: editUrl }}
+            style={styles.webView}
+            startInLoadingState={true}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            sharedCookiesEnabled={true}
+          />
+        </View>
       </Modal>
     </View>
   );
@@ -252,5 +289,20 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 14,
     color: Apptheme.color.black,
+  }, webViewContainer: {
+    flex: 1,
+    marginTop: 30, // Add some margin for status bar
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 1,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderRadius: 15,
+    padding: 5,
+  },
+  webView: {
+    flex: 1,
   },
 });
