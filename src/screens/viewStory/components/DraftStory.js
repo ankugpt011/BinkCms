@@ -13,7 +13,7 @@ import { formatDateTime } from '../../../components/utils';
 
 const PAGE_SIZE = 10;
 
-const DraftStory = ({ grid = false ,FilterOption,fromDate,toDate,category,searched = "",tag='',author}) => {
+const DraftStory = ({ grid = false ,FilterOption,fromDate,toDate,category,searched = "",tag='',author,refresh}) => {
   const userData = useSelector(state => state.login.userData);
   const [storyData, setStoryData] = useState([]);
   const [startIndex, setStartIndex] = useState(0);
@@ -57,7 +57,7 @@ const DraftStory = ({ grid = false ,FilterOption,fromDate,toDate,category,search
       setHasMore(true);
       fetchData(0);
     }
-  }, [userData,fromDate,toDate,category,searched,tag,author,refreshCount]);
+  }, [userData,fromDate,toDate,category,searched,tag,author,refreshCount,refresh]);
 
   const handleLoadMore = () => {
     if (!loadingMore && hasMore) {
@@ -65,10 +65,14 @@ const DraftStory = ({ grid = false ,FilterOption,fromDate,toDate,category,search
     }
   };
 
-  const RenderView = ({ item, index }) => (
+  const RenderView = ({ item, index }) =>{ 
+    console.log('itemitemitem1234rsd',item)
+    const imageUrl = item?.files?.[0]?.url;
+    console.log('imageUrl',imageUrl)
+    return(
     <NewsCard
       id={item?.uid}
-      image={item?.mediaIds}
+      image={imageUrl?imageUrl:""}
       date={item?.date_updated}
       author={item?.authorName}
       title={item?.heading}
@@ -76,7 +80,7 @@ const DraftStory = ({ grid = false ,FilterOption,fromDate,toDate,category,search
       type ={'Draft'}
 
     />
-  );
+  )};
 
   console.log('storyData',storyData)
 

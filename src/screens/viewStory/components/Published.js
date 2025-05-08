@@ -12,7 +12,7 @@ import { formatDateTime } from '../../../components/utils';
 
 const PAGE_SIZE = 10;
 
-const Published = ({ grid = false ,FilterOption,fromDate,toDate,category,searched = "",tag='',author}) => {
+const Published = ({ grid = false ,FilterOption,fromDate,toDate,category,searched = "",tag='',author,refresh}) => {
   const userData = useSelector(state => state.login.userData);
   const [storyData, setStoryData] = useState([]);
   const [startIndex, setStartIndex] = useState(0);
@@ -53,7 +53,7 @@ const Published = ({ grid = false ,FilterOption,fromDate,toDate,category,searche
       setHasMore(true);
       fetchData(0);
     }
-  }, [userData,fromDate,toDate,category,searched,author,tag,refreshCount]);
+  }, [userData,fromDate,toDate,category,searched,author,tag,refreshCount,refresh]);
 
   const handleLoadMore = () => {
     if (!loadingMore && hasMore) {

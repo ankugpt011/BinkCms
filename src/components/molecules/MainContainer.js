@@ -28,6 +28,8 @@ const RenderItem = ({
   formValues,
   updateFormValue,
   invalidFields,
+  story_credits,
+  files
 }) => {
   const isInvalid = invalidFields.includes(item.element);
   const fieldValue = formValues[item?.element];
@@ -55,29 +57,34 @@ const RenderItem = ({
     updateFormValue(item.element, value);
   };
 
-  // Special handler for media fields
-  // const handleMediaSelect = media => {
-  //   console.log('234565432missingFields', media);
-  //   const mediaValue = media?.mediaId || media?.uri || media?.url;
-  //   handleValueChange(mediaValue);
-  // };
-
   const handleMediaSelect = media => {
-    console.log('Media selected for field:', item.element, 'Data:', media);
-    if (media) {
-      // For image uploads
-      if (media.type === 'image') {
-        handleValueChange(media.mediaId); // or media.uri depending on your needs
-      } 
-      // For YouTube URLs
-      else if (media.type === 'youtube') {
-        handleValueChange(media.mediaId);
-      }
+    console.log('Media selected:', media);
+    console.log('Field element:', item.element);
+
+    if (item.element == 'mediaIds' || item?.element == 'extraMediaId') {
+      // media will be a comma-separated string from MediaSelector
+      handleValueChange(media);
     } else {
-      // When media is removed
-      handleValueChange(null);
+      // For single image fields
+      handleValueChange(media?.mediaId || '');
     }
   };
+  // const handleMediaSelect = media => {
+  //   console.log('Media selected for field:', item.element, 'Data:', media);
+  //   if (media) {
+  //     // For image uploads
+  //     if (media.type === 'image') {
+  //       handleValueChange(media.mediaId); // or media.uri depending on your needs
+  //     }
+  //     // For YouTube URLs
+  //     else if (media.type === 'youtube') {
+  //       handleValueChange(media.mediaId);
+  //     }
+  //   } else {
+  //     // When media is removed
+  //     handleValueChange(null);
+  //   }
+  // };
 
   // Special handler for tags (array to string conversion)
   const handleTagsSelect = selectedTags => {
@@ -93,6 +100,9 @@ const RenderItem = ({
 
   // Special handler for story credits
   const handleCreditsChange = data => {
+
+    console.log('handleCreditsChange',data)
+
     Object.entries(data).forEach(([fieldId, value]) => {
       updateFormValue(fieldId, value);
     });
@@ -112,6 +122,7 @@ const RenderItem = ({
         );
 
       case 'CUSTOM_PARAM':
+        console.log('CUSTOM_PARAM', item?.element);
         return (
           <TextArea
             value={fieldValue || ''}
@@ -181,18 +192,29 @@ const RenderItem = ({
         );
 
       case 'MEDIA':
-        console.log('fieldValueOTHER_CATEGORIESMEDIA', fieldValue);
+        console.log(
+          'fieldValueOTHER_CATEGORIESMEDIA',
+          item.element,
+          fieldValue,
+        );
 
-        return (
+        return item?.element == 'mediaIds' ? (
           <MediaSelector
-            onMediaSelect={handleMediaSelect}
-            initialMedia={fieldValue}
-            fieldElement={item.element} // Pass the dynamic field name
+          onMediaSelect={(mediaIds) => handleValueChange(mediaIds)}
+          initialMedia={formValues.mediaIds}
+          fieldElement="mediaIds"
+          files={files}
+        />
+        ) : (
+          <MediaSelector
+            onMediaSelect={extraMediaIds => handleValueChange(extraMediaIds)}
+            initialMedia={formValues.extraMediaId}
+            fieldElement="extraMediaId"
+            files={files}
           />
         );
 
       case 'COMMON_TAGS':
-        console.log('COMMON_TAGS', fieldValue);
         return (
           <CommonTags
             data={tagsData?.tags || []}
@@ -205,11 +227,13 @@ const RenderItem = ({
         );
 
       case 'STORY_CREDIT':
+        console.log('item?.elementSTORY_CREDIT',item?.element)
         return (
           <StoryCredit
             types={types}
             onChange={handleCreditsChange}
             initialValues={formValues}
+            story_credits={story_credits}
           />
         );
 
@@ -294,6 +318,8 @@ const StoryInputSection = ({
   formValues,
   updateFormValue,
   invalidFields,
+  story_credits,
+  files
 }) => {
   console.log('itemfcgvhbjnkmjbhvgch', item);
   return (
@@ -322,6 +348,8 @@ const StoryInputSection = ({
             formValues={formValues}
             invalidFields={invalidFields}
             updateFormValue={updateFormValue}
+            story_credits={story_credits}
+            files={files}
           />
         )}
       />
@@ -335,6 +363,8 @@ const MainContainer = ({
   formValues,
   updateFormValue,
   invalidFields,
+  story_credits,
+  files
 }) => {
   console.log('sections12345678', formValues, updateFormValue);
   if (!formValues) {
@@ -361,6 +391,8 @@ const MainContainer = ({
             formValues={formValues}
             updateFormValue={updateFormValue}
             invalidFields={invalidFields}
+            story_credits={story_credits}
+            files={files}
           />
         )}
         ItemSeparatorComponent={<Gap m4 />}

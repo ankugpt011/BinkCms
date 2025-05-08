@@ -31,14 +31,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import ScheduleModal from '../../components/atoms/ScheduleModal';
 import {formatDateTime} from '../../components/utils';
-import {useRoute} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 
 const CreateStory = () => {
   const scrollViewRef = useRef(null);
   const flatListRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const userData = useSelector(state => state.login.userData);
-  console.log('userDatauserDatauserDatauserData',userData)
+  console.log('userDatauserDatauserDatauserData', userData);
   const [isDirty, setIsDirty] = useState(false);
   const [data, setData] = useState();
   const [headerData, setHeaderData] = useState([]);
@@ -47,8 +47,9 @@ const CreateStory = () => {
   const [invalidFields, setInvalidFields] = useState([]);
   const route = useRoute();
   const [initialized, setInitialized] = useState(false);
+  const navigation = useNavigation();
   const editValue = route.params?.data;
-  console.log('editValue', editValue);
+  console.log('editValue1', editValue);
 
   const generateId = () => {
     return (
@@ -134,6 +135,8 @@ const CreateStory = () => {
     }
   }, [formValues, isDirty]);
 
+  console.log('formValuesformValuessdfvgbfvdcsx',formValues)
+
   const updateFormValue = (fieldKey, value) => {
     console.log('formUpdate123');
     setFormValues(prev => ({
@@ -168,12 +171,42 @@ const CreateStory = () => {
     return mandatoryFields;
   };
 
+  const handleNewStory = () => {
+    // Reset form values (keep sessionId and action)
+    setFormValues({
+      action: 'create_multipage',
+      tempProcessId: generateId(),
+      sessionId: userData?.sessionId,
+      state: 'DRAFT',
+    });
+
+    // Clear edit data (if any)
+    if (route.params?.data) {
+      navigation.setParams({data: undefined}); // Optional: Remove edit data from route
+    }
+
+    // Reset UI states
+    setActiveIndex(0);
+    setInvalidFields([]);
+    setIsDirty(false);
+
+    // Scroll back to top
+    scrollViewRef.current?.scrollTo({y: 0, animated: true});
+    flatListRef.current?.scrollToIndex({index: 0, animated: true});
+
+    ToastAndroid.show('New story started!', ToastAndroid.SHORT);
+  };
+
   const handleSubmit = async (newState = 'DRAFT', extraFields = {}) => {
     const missingFields = validateMandatoryFields(data, formValues);
-    console.log('missingFields',missingFields)
+    console.log('missingFields', missingFields);
 
     if (
-      (newState == 'APPROVED' || newState == 'SCHEDULED') && missingFields.length > 0 ) {
+      (newState == 'APPROVED' ||
+        newState == 'SCHEDULED' ||
+        newState == 'SUBMITTED') &&
+      missingFields.length > 0
+    ) {
       ToastAndroid.show(`Please fill mandatory fields`, ToastAndroid.LONG);
       return;
     }
@@ -207,7 +240,15 @@ const CreateStory = () => {
       const response = await postStoryApi(body, CreateStoryApi(false));
       if (response) {
         ToastAndroid.show(`story saved in ${newState}`, ToastAndroid.SHORT);
+        if (
+          newState == 'APPROVED' ||
+          newState == 'SCHEDULED' ||
+          newState == 'SUBMITTED'
+        ) {
+          handleNewStory();
+        }
       }
+
       console.log('POST Response:', response);
     } catch (error) {
       console.error('POST Error:', error);
@@ -291,19 +332,20 @@ const CreateStory = () => {
         group.children.forEach(field => {
           if (editValue && editValue[field.element] !== undefined) {
             // Handle media fields specifically
-            if (field.input_type === 'MEDIA') {
-              initialValues[field.element] =
-                editValue[field.element] ||
-                editValue.mediaIds ||
-                editValue.media_url ||
-                null;
-            } else {
-              initialValues[field.element] = editValue[field.element];
-            }
+            // if (field.input_type === 'MEDIA') {
+            //   initialValues[field.element] =
+            //     editValue[field.element] ||
+            //     editValue.mediaIds ||
+            //     editValue.media_url ||
+            //     null;
+            // } else {
+            initialValues[field.element] = editValue[field.element];
+            // }
           }
         });
       });
     });
+    console.log('initialValues', initialValues);
 
     setFormValues(initialValues);
     setInitialized(true);
@@ -393,134 +435,171 @@ const CreateStory = () => {
       <View style={styles.container}>
         <StatusBar backgroundColor={Apptheme.color.primary} />
         <View style={styles.topBar}>
-          <Text style={[FontStyle.headingLarge, styles.topBarTitle]}>
-            Create Story {netStatus ? 'online' : 'offline'}
-          </Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+            <Text style={[FontStyle.headingLarge, styles.topBarTitle]}>
+              Create Story
+              {/* {netStatus ? 'online' : 'offline'} */}
+            </Text>
+            <TouchableOpacity
+              onPress={handleNewStory}
+              style={{
+                paddingVertical: 5,
+                paddingHorizontal: 10,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'white',
+                borderRadius: 4,
+              }}>
+              <Text
+                style={[
+                  FontStyle.headingSmall,
+                  {color: 'black', fontSize: 12},
+                ]}>
+                + NEW
+              </Text>
+            </TouchableOpacity>
+          </View>
           <Gap m9 />
           <Gap m3 />
         </View>
 
-        {data?
-        <>
-          <View style={styles.fixedHeader}>
-            <FlatList
-              ref={flatListRef}
-              data={headerData}
-              renderItem={({item, index}) => (
-                <RenderHeader item={item} index={index} />
-              )}
-              horizontal
-              ItemSeparatorComponent={<Gap row m8 />}
-              contentContainerStyle={styles.headerListContent}
-              showsHorizontalScrollIndicator={false}
-            />
-          </View>
-
-          <ScrollView
-            style={styles.contentScroll}
-            ref={scrollViewRef}
-            onScroll={onScroll}
-            scrollEventThrottle={16}>
-            {data
-              ? Object.entries(data)?.map(([sectionKey, groupList]) => (
-                  <View
-                    key={sectionKey}
-                    onLayout={event => onSectionLayout(event, sectionKey)}>
-                    <MainContainer
-                      sections={groupList}
-                      heading={sectionKey}
-                      formValues={formValues}
-                      updateFormValue={updateFormValue}
-                      invalidFields={invalidFields}
-                    />
-                  </View>
-                ))
-              : null}
-
-            <Gap m8 />
-
-            <View style={styles.footerActions}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  gap: 10,
-                }}>
-                <TouchableOpacity
-                  onPress={() => handleSubmit('DRAFT')}
-                  style={styles.actionButton}>
-                  <VectorIcon
-                    material-community-icon
-                    name="content-save"
-                    style={styles.icon}
-                    size={16}
-                  />
-                  <Text style={FontStyle.labelLarge}>Save</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => handleSubmit('SUBMITTED')}
-                  style={styles.actionButton}>
-                  <VectorIcon
-                    material-community-icon
-                    name="send"
-                    style={styles.icon}
-                    size={16}
-                  />
-                  <Text style={FontStyle.labelLarge}>Submit for review</Text>
-                </TouchableOpacity>
-              </View>
-              {userData?.can_publish_story?
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  gap: 10,
-                }}>
-                <TouchableOpacity
-                  onPress={() => setModalVisible(true)}
-                  style={styles.actionButton}>
-                  <VectorIcon
-                    material-community-icon
-                    name="calendar-month"
-                    style={styles.icon}
-                    size={16}
-                  />
-                  <Text style={FontStyle.labelLarge}>Schedule for later</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => handleSubmit('APPROVED')}
-                  style={[
-                    styles.actionButton,
-                    {backgroundColor: Apptheme.color.primary},
-                  ]}>
-                  <VectorIcon
-                    material-community-icon
-                    name="plus"
-                    style={styles.icon}
-                    size={20}
-                    color="white"
-                  />
-                  <Text
-                    style={[
-                      FontStyle.labelLarge,
-                      {color: Apptheme.color.background},
-                    ]}>
-                    Publish now
-                  </Text>
-                </TouchableOpacity>
-              </View>:null}
+        {data ? (
+          <>
+            <View style={styles.fixedHeader}>
+              <FlatList
+                ref={flatListRef}
+                data={headerData}
+                renderItem={({item, index}) => (
+                  <RenderHeader item={item} index={index} />
+                )}
+                horizontal
+                ItemSeparatorComponent={<Gap row m8 />}
+                contentContainerStyle={styles.headerListContent}
+                showsHorizontalScrollIndicator={false}
+              />
             </View>
-            <ScheduleModal
-              isVisible={modalVisible}
-              onClose={() => setModalVisible(false)}
-              onConfirm={selectedDate => handleSchedule(selectedDate)}
-            />
 
-            <Gap m8 />
-          </ScrollView>
-        </> : <View style={{flex:1,alignItems:'center',justifyContent:'center'}}><ActivityIndicator size="small" color="#0000ff" /></View>}
+            <ScrollView
+              style={styles.contentScroll}
+              ref={scrollViewRef}
+              onScroll={onScroll}
+              scrollEventThrottle={16}>
+              {data
+                ? Object.entries(data)?.map(([sectionKey, groupList]) => (
+                    <View
+                      key={sectionKey}
+                      onLayout={event => onSectionLayout(event, sectionKey)}>
+                      <MainContainer
+                        sections={groupList}
+                        heading={sectionKey}
+                        formValues={formValues}
+                        updateFormValue={updateFormValue}
+                        invalidFields={invalidFields}
+                        files={editValue?.files}
+                        story_credits={editValue?.story_credits}
+                      />
+                    </View>
+                  ))
+                : null}
+
+              <Gap m8 />
+
+              <View style={styles.footerActions}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    gap: 10,
+                  }}>
+                  <TouchableOpacity
+                    onPress={() => handleSubmit('DRAFT')}
+                    style={styles.actionButton}>
+                    <VectorIcon
+                      material-community-icon
+                      name="content-save"
+                      style={styles.icon}
+                      size={16}
+                    />
+                    <Text style={FontStyle.labelLarge}>Save</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => handleSubmit('SUBMITTED')}
+                    style={styles.actionButton}>
+                    <VectorIcon
+                      material-community-icon
+                      name="send"
+                      style={styles.icon}
+                      size={16}
+                    />
+                    <Text style={FontStyle.labelLarge}>Submit for review</Text>
+                  </TouchableOpacity>
+                </View>
+                {userData?.can_publish_story ? (
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      gap: 10,
+                    }}>
+                    <TouchableOpacity
+                      onPress={() => setModalVisible(true)}
+                      style={styles.actionButton}>
+                      <VectorIcon
+                        material-community-icon
+                        name="calendar-month"
+                        style={styles.icon}
+                        size={16}
+                      />
+                      <Text style={FontStyle.labelLarge}>
+                        Schedule for later
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={() => handleSubmit('APPROVED')}
+                      style={[
+                        styles.actionButton,
+                        {backgroundColor: Apptheme.color.primary},
+                      ]}>
+                      <VectorIcon
+                        material-community-icon
+                        name="plus"
+                        style={styles.icon}
+                        size={20}
+                        color="white"
+                      />
+                      <Text
+                        style={[
+                          FontStyle.labelLarge,
+                          {color: Apptheme.color.background},
+                        ]}>
+                        Publish now
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
+              </View>
+              <ScheduleModal
+                isVisible={modalVisible}
+                onClose={() => setModalVisible(false)}
+                onConfirm={selectedDate => handleSchedule(selectedDate)}
+              />
+
+              <Gap m8 />
+            </ScrollView>
+          </>
+        ) : (
+          <View
+            style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+            <ActivityIndicator size="small" color="#0000ff" />
+          </View>
+        )}
       </View>
     </KeyboardAvoidingView>
   );
@@ -595,109 +674,3 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
 });
-
-// import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View, Button, Alert } from 'react-native'
-// import React, { useRef } from 'react'
-// import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor';
-
-// const CreateStory = () => {
-//   const richText = useRef();
-
-//   const handleConfirm = async () => {
-//     const contentHtml = await richText.current?.getContentHtml();
-//     console.log("Final HTML:", contentHtml);
-
-//     Alert.alert("Content Stored As:", contentHtml.substring(0, 100) + '...'); // just showing part of it
-//   };
-
-//   return (
-//     <KeyboardAvoidingView
-//       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-//       style={styles.container}
-//     >
-//       <ScrollView contentContainerStyle={styles.scroll}>
-//         <RichEditor
-//           ref={richText}
-//           style={styles.rich}
-//           placeholder="Start writing here..."
-//           onChange={(text) => {
-//             console.log("Rich Text (onChange):", text); // HTML string
-//           }}
-//         />
-
-//         {/* Confirm Button */}
-//         <View style={styles.confirmContainer}>
-//           <Button title="Confirm" onPress={handleConfirm} />
-//         </View>
-//       </ScrollView>
-
-//       <RichToolbar
-//         editor={richText}
-//         actions={[
-//           actions.setBold,
-//           actions.setItalic,
-//           actions.setUnderline,
-//           actions.heading1,
-//           actions.heading2,
-//           actions.insertBulletsList,
-//           actions.insertOrderedList,
-//           actions.insertImage,
-//           'customInsertVideo',
-//           actions.insertLink,
-//           actions.setStrikethrough,
-//           actions.setSubscript,
-//           actions.setSuperscript,
-//           actions.removeFormat,
-//           actions.undo,
-//           actions.redo,
-//           actions.checkboxList,
-//         ]}
-//         iconMap={{
-//           customInsertVideo: () => (
-//             <Text style={{ fontWeight: 'bold', fontSize: 19, color: 'black' }}>vi🎥</Text>
-//           ),
-//         }}
-//         onPress={(action) => {
-//           if (action === 'customInsertVideo') {
-//             console.log('Video button clicked');
-//             const videoUrl = 'https://www.w3schools.com/html/mov_bbb.mp4';
-//             richText.current?.insertVideo(videoUrl);
-//           }
-//         }}
-//         onPressAddImage={() => {
-//           const imageUrl = "https://images.unsplash.com/photo-1742943892627-f7e4ddf91224?w=900&auto=format&fit=crop&q=60";
-//           richText.current?.insertImage(imageUrl);
-//         }}
-//         style={styles.richBar}
-//       />
-//     </KeyboardAvoidingView>
-//   );
-// };
-
-// export default CreateStory;
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: '#fff',
-//   },
-//   scroll: {
-//     padding: 16,
-//     paddingBottom: 80,
-//   },
-//   rich: {
-//     borderColor: '#ccc',
-//     borderWidth: 1,
-//     minHeight: 300,
-//     borderRadius: 10,
-//     padding: 10,
-//   },
-//   richBar: {
-//     backgroundColor: '#f5f5f5',
-//     borderTopWidth: 1,
-//     borderColor: '#ccc',
-//   },
-//   confirmContainer: {
-//     marginTop: 20,
-//   },
-// });

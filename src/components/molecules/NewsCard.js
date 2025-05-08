@@ -29,7 +29,6 @@ const NewsCard = ({id, image, author, title, date, grid, type,url}) => {
   const dispatch = useDispatch();
   const [webViewVisible, setWebViewVisible] = useState(false);
   const {apiKey, apiEndPoint, partnerData} = useSelector(state => state.login);
-
   console.log('typetypetypetype', apiEndPoint);
 
   const handleEditPress = () => {

@@ -168,6 +168,7 @@ const PromotedNews = () => {
   const RenderItem = ({item, index}) => {
     const priority = index + 1;
 
+
     return (
       <View style={styles.rowContainer}>
         <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
@@ -205,7 +206,7 @@ const PromotedNews = () => {
             style={styles.selectButton}
             onPress={() => setDropdownVisible(priority)} 
             disabled={updating}>
-            <Text style={{color: '#aaa'}}>Select News</Text>
+            <Text style={{color: '#aaa'}}>Select News1</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -250,12 +251,20 @@ const PromotedNews = () => {
         )}
 
         {promotedLoading || additionalLoading ? (
+          <>
+          {console.log('loading1')}
           <ActivityIndicator size="large" color={Apptheme.color.primary} />
+          </>
         ) : (
           <>
             {updating ? (
+              <>
+          {console.log('loading2')}
+
               <ActivityIndicator size="large" color={Apptheme.color.primary} />
+              </>
             ) : (
+              promotedNews?
               <FlatList
                 data={newsSlots}
                 keyExtractor={(item, index) =>
@@ -265,7 +274,7 @@ const PromotedNews = () => {
                 renderItem={({item, index}) => (
                   <RenderItem item={item} index={index} />
                 )}
-              />
+              />: null
             )}
 
             {/* News Selection Dropdown Modal */}

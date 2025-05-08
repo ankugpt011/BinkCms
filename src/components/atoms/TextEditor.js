@@ -12,8 +12,7 @@ const { width: screenWidth } = Dimensions.get('window');
 
 const TextEditor = ({ placeholder = 'Start typing here...', onChange,initialContent }) => {
   const richText = useRef();
-  const [charCount, setCharCount] = useState(0);
-  const [wordCount, setWordCount] = useState(0);
+  
   const userData = useSelector(state => state.login.userData);
   const { postData } = useApi({ method: 'POST', manual: true });
 
@@ -21,8 +20,7 @@ const TextEditor = ({ placeholder = 'Start typing here...', onChange,initialCont
 
   const handleChange = (text) => {
     const plainText = text.replace(/<[^>]*>/g, '').trim();
-    setCharCount(plainText.length);
-    setWordCount(plainText === '' ? 0 : plainText.split(/\s+/).length);
+   
     if (onChange) onChange(text);
   };
 
@@ -141,10 +139,10 @@ const TextEditor = ({ placeholder = 'Start typing here...', onChange,initialCont
         />
       </ScrollView>
 
-      <View style={styles.counterContainer}>
+      {/* <View style={styles.counterContainer}>
         <Text style={FontStyle.titleSmall}>Character Count: {charCount}</Text>
         <Text style={FontStyle.titleSmall}>Word Count: {wordCount}</Text>
-      </View>
+      </View> */}
     </View>
   );
 };

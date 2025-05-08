@@ -12,12 +12,13 @@ import { formatDateTime } from '../../../components/utils';
 
 const PAGE_SIZE = 10;
 
-const Scheduled = ({grid = false ,FilterOption,fromDate,toDate,category,searched = "",tag='',author}) => {
+const Scheduled = ({grid = false ,FilterOption,fromDate,toDate,category,searched = "",tag='',author,refresh}) => {
   const userData = useSelector(state => state.login.userData);
   const [storyData, setStoryData] = useState([]);
   const [startIndex, setStartIndex] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const { refreshCount } = useSelector(state => state.storyUpdate);
 
   const formattedFromDate = fromDate ? formatDateTime(fromDate) : '';
   const formattedToDate = toDate ? formatDateTime(toDate) : '';
@@ -54,7 +55,7 @@ const Scheduled = ({grid = false ,FilterOption,fromDate,toDate,category,searched
       setHasMore(true);
       fetchData(0);
     }
-  }, [userData,fromDate,toDate,category,searched,author,tag]);
+  }, [userData,fromDate,toDate,category,searched,author,tag,refresh,refreshCount]);
 
   const handleLoadMore = () => {
     if (!loadingMore && hasMore) {

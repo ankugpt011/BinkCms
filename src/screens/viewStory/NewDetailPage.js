@@ -26,7 +26,10 @@ import WebView from 'react-native-webview';
 const NewDetailPage = () => {
   const navigation = useNavigation();
   const userData = useSelector(state => state.login.userData);
-  console.log('userData234',userData)
+  const categoriesData = useSelector(
+    state => state.metaData.categories.categories,
+  );
+  console.log('userData234', categoriesData);
   const sessionId = userData?.sessionId;
   const [data, setData] = useState();
   const {width} = useWindowDimensions();
@@ -71,6 +74,8 @@ const NewDetailPage = () => {
     console.log('resqwertyuio', res);
   }, [callApi, route.params?.id]);
 
+  console.log('data?.category', data?.otherCategoryIds);
+
   useEffect(() => {
     fetchData();
   }, [userData, route.params?.id]);
@@ -84,6 +89,7 @@ const NewDetailPage = () => {
           width: 160,
           borderRadius: 4,
           backgroundColor: 'white',
+          marginBottom:5
         }}
         source={{
           uri: item.item.url,
@@ -116,15 +122,44 @@ const NewDetailPage = () => {
     },
   };
 
-  const handleWebViewNavigation = (navState) => {
+  const getCategoryName = categoryId => {
+    if (!categoryId || !categoriesData) return null;
+
+    console.log('getCategoryName', categoryId);
+
+    const foundCategory = categoriesData.find(
+      category => category.catId == categoryId,
+    );
+
+    console.log('foundCategory', foundCategory);
+
+    return foundCategory ? foundCategory.name : null;
+  };
+
+  const handleWebViewNavigation = navState => {
     // Check if the current URL no longer contains the newsId parameter
-    console.log('navState.url',navState.url)
+    console.log('navState.url', navState.url);
     const urlHasNewsId = navState.url.includes(`newsId=${route?.params?.id}`);
-    
+
     if (!urlHasNewsId) {
       closeWebView();
       fetchData(); // Refresh the news data
     }
+  };
+
+  const getOtherCategoryNames = categoryIds => {
+    if (!categoryIds || !categoriesData) return 'No categories found';
+
+    const ids = categoryIds.split(',').map(id => parseInt(id.trim(), 10));
+
+    const names = ids
+      .map(id => {
+        const category = categoriesData.find(cat => cat.catId === id);
+        return category ? category.name : null;
+      })
+      .filter(Boolean);
+
+    return names.length > 0 ? names.join(', ') : 'No categories found';
   };
 
   return (
@@ -243,7 +278,9 @@ const NewDetailPage = () => {
             News Time
           </Text>
           <Gap m1 />
-          <Text style={FontStyle.labelLarge}>{data?.date_news}</Text>
+          <Text style={FontStyle.labelLarge}>
+            {data?.date_news || data?.date_updated}
+          </Text>
           <Gap m3 />
           <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
             Author
@@ -251,23 +288,27 @@ const NewDetailPage = () => {
           <Gap m1 />
           <Text style={FontStyle.labelLarge}>{data?.authorName}</Text>
           <Gap m3 />
-          <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
+          {/* <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
             Credit
           </Text>
           <Gap m1 />
           <Text style={FontStyle.labelLarge}>{data?.authorName}</Text>
-          <Gap m3 />
+          <Gap m3 /> */}
           <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
             Main Category
           </Text>
           <Gap m1 />
-          <Text style={FontStyle.labelLarge}>{data?.maincategory_name}</Text>
+          <Text style={FontStyle.labelLarge}>
+            {getCategoryName(data?.category) || 'No category found'}
+          </Text>
           <Gap m3 />
           <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
             Other Categories
           </Text>
           <Gap m1 />
-          <Text style={FontStyle.labelLarge}>चित्रशाला</Text>
+          <Text style={FontStyle.labelLarge}>
+            {getOtherCategoryNames(data?.otherCategoryIds)}
+          </Text>
           <Gap m3 />
           <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
             Location
@@ -327,18 +368,15 @@ const NewDetailPage = () => {
           </Text>
           <Gap m1 />
           {route?.params?.type === 'Draft' ? (
-            <Image
-              style={{
-                height: 80,
-                width: 160,
-                borderRadius: 4,
-                backgroundColor: 'white',
-              }}
-              source={{
-                uri: data?.mediaIds,
-              }}
-              resizeMode="cover"
+            <View style={{flexDirection: 'row', gap: 10}}>
+             <FlatList
+              data={data?.files}
+              
+              renderItem={(item, index) => (
+                <RenderImage item={item} index={index} />
+              )}
             />
+            </View>
           ) : (
             <FlatList
               data={data?.media}
@@ -451,7 +489,7 @@ const NewDetailPage = () => {
               Date Created
             </Text>
             <Text style={[FontStyle.labelLarge, {flex: 3}]}>
-              {data?.date_news}
+              {data?.date_news || data?.date_created}
             </Text>
           </View>
           <View
@@ -527,14 +565,14 @@ const NewDetailPage = () => {
           </TouchableOpacity>
           {console.log('editURL', editUrl)}
           <WebView
-  source={{uri: editUrl}}
-  style={styles.webView}
-  onNavigationStateChange={handleWebViewNavigation}
-  startInLoadingState={true}
-  javaScriptEnabled={true}
-  domStorageEnabled={true}
-  sharedCookiesEnabled={true}
-/>
+            source={{uri: editUrl}}
+            style={styles.webView}
+            onNavigationStateChange={handleWebViewNavigation}
+            startInLoadingState={true}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            sharedCookiesEnabled={true}
+          />
         </View>
       </Modal>
     </View>

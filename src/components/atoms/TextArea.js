@@ -10,6 +10,7 @@ const TextArea = ({
   numberOfLines = 4,
   multiline = true,
   style,
+  
   ...props
 }) => {
   return (

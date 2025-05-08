@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   FlatList,
 } from 'react-native';
-import {Tabs} from 'react-native-collapsible-tab-view';
+import {MaterialTabBar, MaterialTabItem, Tabs} from 'react-native-collapsible-tab-view';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Apptheme from '../../assets/theme/Apptheme';
 import Scheduled from './components/Scheduled';
@@ -36,7 +36,8 @@ import SearchableDropdown from '../../components/atoms/SearchableDropDown';
 const ViewStory = () => {
   // Initialize dates
   const [defaultFromDate, setDefaultFromDate] = useState(() => {
-    const yesterday =   new Date(0)
+    let yesterday = new Date();
+    yesterday.setFullYear(yesterday.getFullYear() - 1);
     // yesterday.setDate(yesterday.getDate() - 1);
     return yesterday;
   });
@@ -47,7 +48,8 @@ const ViewStory = () => {
   const [toDate, setToDate] = useState(defaultToDate);
   const [openFrom, setOpenFrom] = useState(false);
   const [openTo, setOpenTo] = useState(false);
-  const [FilterOption, setFilterOption] = useState(true);
+  const[refresh,setRefresh]= useState(false)
+  const [FilterOption, setFilterOption] = useState(false);
   const [grid, setGrid] = useState(false);
   const [storyData, setStoryData] = useState([]);
   const userData = useSelector(state => state.login.userData);
@@ -251,6 +253,11 @@ const ViewStory = () => {
           </Text>
           <View style={{flexDirection: 'row', gap: 5, alignItems: 'center'}}>
             {/* Grid/List toggle buttons */}
+
+            <TouchableOpacity onPress={()=>setRefresh(!refresh)} style={{marginRight:5}}>
+              <VectorIcon material-community-icon name='refresh' color='white' size={20}/>
+            </TouchableOpacity>
+
             <TouchableOpacity
               onPress={() => setGrid(true)}
               style={[
@@ -523,14 +530,21 @@ const ViewStory = () => {
       </View>
     );
   };
+  const tabBar = props => (
+    <MaterialTabBar
+      {...props}
+      indicatorStyle={{ backgroundColor: Apptheme.color.primary }}
+      style={{ backgroundColor: 'white',paddingHorizontal:0 }}
+      labelStyle={{fontSize:12,fontWeight:'500',width:80,textAlign:'center'}}
+    />
+  );
 
   return (
     <Tabs.Container
       renderHeader={Header}
-      headerContainerStyle={{elevation: 5, shadowOpacity: 0.2}}
-      tabBarStyle={{height: 50}}
-      tabBarItemStyle={{width: 100}}
-      tabBarLabelStyle={styles.tabBarLabel}>
+      revealHeaderOnScroll
+      renderTabBar={tabBar}
+      >
       <Tabs.Tab name="Draft-Story">
         <DraftStory
           grid={grid}
@@ -541,6 +555,7 @@ const ViewStory = () => {
           searched={appliedFilters.search}
           tag={appliedFilters.tag}
           author={appliedFilters.author}
+          refresh={refresh}
         />
       </Tabs.Tab>
 
@@ -554,6 +569,7 @@ const ViewStory = () => {
           searched={appliedFilters.search}
           tag={appliedFilters.tag}
           author={appliedFilters.author}
+          refresh={refresh}
         />
       </Tabs.Tab>
 
@@ -567,6 +583,7 @@ const ViewStory = () => {
           searched={appliedFilters.search}
           tag={appliedFilters.tag}
           author={appliedFilters.author}
+          refresh={refresh}
         />
       </Tabs.Tab>
 
@@ -580,6 +597,7 @@ const ViewStory = () => {
           searched={appliedFilters.search}
           tag={appliedFilters.tag}
           author={appliedFilters.author}
+          refresh={refresh}
         />
       </Tabs.Tab>
     </Tabs.Container>
@@ -674,7 +692,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tabBarLabel: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: 'bold',
     textTransform: 'uppercase',
     includeFontPadding: false,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,16 +15,44 @@ const StoryCredit = ({
   types = [],
   onChange = () => {},
   initialCredits = [],
+  story_credits
 }) => {
-  const [credits, setCredits] = useState(initialCredits.length > 0 ? initialCredits : []);
-  const [focusIndex, setFocusIndex] = useState(null);
-
-  const { callApi } = useApi({ manual: true, method: 'GET' });
-
-  // Generate a unique 10-digit ID for each credit
+  // Initialize credits state with either initialCredits or parsed story_credits
   const generateUniqueId = () => {
     return Math.floor(Math.random() * 9000000000) + 1000000000;
   };
+
+  const { callApi } = useApi({ manual: true, method: 'GET' });
+
+  const [credits, setCredits] = useState(() => {
+    // If we have initialCredits, use them
+    if (initialCredits.length > 0) return initialCredits;
+    
+    // If we have story_credits, parse them into our format
+    if (story_credits && story_credits.length > 0) {
+      return story_credits.map(credit => ({
+        type: credit.label,
+        user: {
+          userId: credit.authorId,
+          name: credit.author_name,
+          email: '' // You might need to adjust this if email is available
+        },
+        input: credit.author_name,
+        users: [],
+        uniqueId: generateUniqueId() // Generate a new ID for each credit
+      }));
+    }
+    
+    // Default empty array
+    return [];
+  });
+
+
+
+  const [focusIndex, setFocusIndex] = useState(null);
+
+  // Generate a unique 10-digit ID for each credit
+ 
 
   // Format the credits data into the required output structure
   const formatOutput = (credits) => {
@@ -32,25 +60,35 @@ const StoryCredit = ({
       if (!credit.uniqueId) return acc;
       
       const uid = credit.uniqueId;
+      
+      // Initialize the output object with the array if it doesn't exist
+      if (!acc.extra_author_data) {
+        acc.extra_author_data = [];
+      }
+      
+      // Add the UID to the array
+      acc.extra_author_data.push(uid);
+      
+      // Keep all the existing individual fields
       return {
         ...acc,
-        [`extra_author_data_${uid}`]: uid,
-        // [`extra_uid_${uid}`]: null,
-        // [`extra_author_type_${uid}`]: 'internal',
         [`label_${uid}`]: credit.type || '',
         [`authorId_${uid}`]: credit.user?.userId || null,
-        // [`authorName_${uid}`]: credit.user 
-        //   ? `${credit.user.name} (${credit.user.email || 'null'})` 
-        //   : null,
+        [`extra_author_type_${uid}`]: 'internal'
       };
     }, {});
   };
 
-  // Update both local state and parent component with formatted data
+  // Call formatOutput and onChange when credits change
+  useEffect(() => {
+    const formattedData = formatOutput(credits);
+    onChange(formattedData);
+  }, [credits]);
+
+  // Update local state
   const handleUpdate = (updatedCredits) => {
     setCredits(updatedCredits);
-    const formattedData = formatOutput(updatedCredits);
-    onChange(formattedData);
+    // Note: We don't call onChange here because the useEffect will handle it
   };
 
   // Handle credit type change
@@ -81,13 +119,12 @@ const StoryCredit = ({
     }];
     setCredits(updated);
     setFocusIndex(updated.length - 1);
-    handleUpdate(updated);
   };
 
   // Remove a credit
   const removeCredit = (index) => {
     const updated = credits.filter((_, i) => i !== index);
-    handleUpdate(updated);
+    setCredits(updated);
     setFocusIndex(null);
   };
 
