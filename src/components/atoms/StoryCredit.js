@@ -17,6 +17,7 @@ const StoryCredit = ({
   initialCredits = [],
   story_credits
 }) => {
+  console.log('story_credits-story_credits',story_credits)
   // Initialize credits state with either initialCredits or parsed story_credits
   const generateUniqueId = () => {
     return Math.floor(Math.random() * 9000000000) + 1000000000;
@@ -168,14 +169,15 @@ const StoryCredit = ({
             maxHeight={150}
           />
 
-          {/* User Selection Dropdown */}
+          {console.log('credit.user?.userId',credit.user?.userId,credit.user?.name)}
           <Dropdown
             style={[styles.dropdown, { flex: 1 }]}
             data={credit.users}
             labelField="label"
             valueField="value"
             search
-            value={credit.user?.userId || null}
+            value={credit.user?.userId|| null}
+            placeholder={credit.user ? credit.user.name : 'Select author...'}
             searchPlaceholder="Search name..."
             placeholderStyle={{ color: 'black', fontSize: 14 }}
             selectedTextStyle={{ color: 'black' }}

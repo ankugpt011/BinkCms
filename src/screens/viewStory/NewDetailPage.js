@@ -22,6 +22,8 @@ import {useWindowDimensions} from 'react-native';
 import RenderHtml from 'react-native-render-html';
 import RouteName from '../../navigation/RouteName';
 import WebView from 'react-native-webview';
+import YoutubePlayer from 'react-native-youtube-iframe';
+import { formatToIST } from '../../components/atoms/formatToIST';
 
 const NewDetailPage = () => {
   const navigation = useNavigation();
@@ -35,6 +37,7 @@ const NewDetailPage = () => {
   const {width} = useWindowDimensions();
   const route = useRoute();
   const [webViewVisible, setWebViewVisible] = useState(false);
+  console.log('routeghjhgcbj',route.params)
 
   const handleEditPress = () => {
     console.log('fghjnkjhgfchvbjn');
@@ -67,7 +70,7 @@ const NewDetailPage = () => {
     } else {
       res = await callApi(
         null,
-        FetchStoryApi(0, 10, sessionId, route.params?.id),
+        FetchStoryApi(0, 10, sessionId, route.params?.id,route?.params.type =='Private'?'PRIVATE':null),
       );
       setData(res?.news[0]);
     }
@@ -81,18 +84,80 @@ const NewDetailPage = () => {
   }, [userData, route.params?.id]);
 
   const RenderImage = ({item}) => {
-    console.log('item23456789', item.item.url);
+    console.log('item', item);
+    
+    // Handle the case where item might be an object with an 'item' property
+    const mediaItem = item.item || item;
+    
+    // If it's a YouTube video
+    if (mediaItem?.startsWith?.('yt_')) {
+      const youtubeId = extractYoutubeId(mediaItem);
+      return (
+        <View style={{width: 200, height: 120, marginRight: 10}}>
+          <YoutubePlayer
+            height={120}
+            width={200}
+            videoId={youtubeId}
+            play={false}
+          />
+        </View>
+      );
+    }
+  
+    // Find matching file in data.files array
+    const matchingFile = data?.files?.find(file => file.mediaId == mediaItem);
+    
+    // Get the URL - prioritize matchingFile.url, then fall back to mediaItem if it's a string
+    const imageUrl = matchingFile?.url || (typeof mediaItem === 'string' ? mediaItem : null);
+  
+    if (!imageUrl) return null;
+  
     return (
       <Image
         style={{
-          height: 80,
-          width: 160,
+          height: 110,
+          width: 120,
           borderRadius: 4,
           backgroundColor: 'white',
-          marginBottom:5
+          marginBottom: 5,
         }}
         source={{
-          uri: item.item.url,
+          uri: imageUrl,
+        }}
+        resizeMode="cover"
+      />
+    );
+  };
+
+  const RenderNewsImage = ({item}) => {
+    console.log('itemRenderNewsImage', item);
+
+    if (item?.item?.url.startsWith?.('yt_')) {
+      const youtubeId = extractYoutubeId(item?.item?.url);
+      return (
+        <View style={{width: 200, height: 120, marginRight: 10}}>
+          <YoutubePlayer
+            height={120}
+            width={200}
+            videoId={youtubeId}
+            play={false}
+          />
+        </View>
+      );
+    }
+   
+  
+    return (
+      <Image
+        style={{
+          height: 110,
+          width: 120,
+          borderRadius: 4,
+          backgroundColor: 'white',
+          marginBottom: 5,
+        }}
+        source={{
+          uri: item?.item?.url,
         }}
         resizeMode="cover"
       />
@@ -161,6 +226,15 @@ const NewDetailPage = () => {
 
     return names.length > 0 ? names.join(', ') : 'No categories found';
   };
+
+  const extractYoutubeId = mediaId => {
+    if (mediaId.startsWith('yt_')) {
+      return mediaId.replace('yt_', '');
+    }
+    return mediaId;
+  };
+
+  console.log('datafghjklmnbvbnm', data);
 
   return (
     <View style={{flex: 1, backgroundColor: 'white'}}>
@@ -279,7 +353,7 @@ const NewDetailPage = () => {
           </Text>
           <Gap m1 />
           <Text style={FontStyle.labelLarge}>
-            {data?.date_news || data?.date_updated}
+            {formatToIST(data?.date_news||data?.date_updated)}
           </Text>
           <Gap m3 />
           <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
@@ -364,27 +438,46 @@ const NewDetailPage = () => {
           </Text>
           <Gap m3 />
           <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
-            Images
+            Cover Images
           </Text>
           <Gap m1 />
           {route?.params?.type === 'Draft' ? (
             <View style={{flexDirection: 'row', gap: 10}}>
-             <FlatList
-              data={data?.files}
-              
-              renderItem={(item, index) => (
-                <RenderImage item={item} index={index} />
-              )}
-            />
+              <FlatList
+                data={data?.mediaIds?.split(',')}
+                horizontal
+                renderItem={(item, index) => (
+                  <RenderImage item={item} index={index} />
+                )}
+              />
             </View>
           ) : (
             <FlatList
               data={data?.media}
+              horizontal
               renderItem={(item, index) => (
-                <RenderImage item={item} index={index} />
+                <RenderNewsImage item={item} index={index} />
               )}
             />
           )}
+          {route?.params?.type === 'Draft' ? <>
+            <Gap m3 />
+
+            <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
+            Featured Image
+            </Text>
+            <Gap m1 />
+
+            <View style={{flexDirection: 'row', gap: 10}}>
+              <FlatList
+                data={data?.extraMediaId?.split(',')}
+                horizontal
+                renderItem={(item, index) => (
+                  <RenderImage item={item} index={index} />
+                )}
+              />
+            </View>
+          </>:null}
 
           <Gap m3 />
         </View>

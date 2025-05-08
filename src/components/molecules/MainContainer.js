@@ -21,6 +21,8 @@ import {CategoryList, LocationList} from '../../apiServices/apiHelper';
 import {useSelector} from 'react-redux';
 import PublicUser from '../atoms/PublicUser';
 import Location from '../atoms/Location';
+import PartnerUser from '../atoms/PartnerUser';
+import PartnerUserDropdown from '../atoms/PartnerUser';
 
 const RenderItem = ({
   item,
@@ -148,6 +150,14 @@ const RenderItem = ({
             categories={categoriesData?.categories || []}
           />
         );
+        case 'PARTNER_USER':
+          return(
+          <PartnerUserDropdown
+            value={fieldValue}
+            onChange={(value)=>handleValueChange(value?.userId)}
+            
+          />
+          );
 
       case 'OTHER_CATEGORIES':
         console.log('fieldValueOTHER_CATEGORIES', fieldValue);

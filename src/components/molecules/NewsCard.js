@@ -21,9 +21,12 @@ import {deleteNews, deleteStory, UpdateNewsStatus} from '../../apiServices/apiHe
 import {useDispatch, useSelector} from 'react-redux';
 import {triggerStoryRefresh} from '../../redux/reducer/StoryUpdateSlice';
 import WebView from 'react-native-webview';
+import YoutubePlayer from 'react-native-youtube-iframe';
+import { formatToIST } from '../atoms/formatToIST';
 // import Clipboard from '@react-native-clipboard/clipboard';
 
 const NewsCard = ({id, image, author, title, date, grid, type,url}) => {
+  console.log('datedatedatefvgbvfdcsx',date)
   const formattedDate = dayjs(date).format('MMM DD, YYYY hh:mm A');
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -124,11 +127,26 @@ const NewsCard = ({id, image, author, title, date, grid, type,url}) => {
   console.log('image123456', image);
   const editUrl = `https://stagingdc.hocalwire.in//news/add-news/edit_news_applite.jsp?newsId=${id}&page=1&sessionId=${sessionId}`;
 
+  const extractYoutubeId = mediaId => {
+    if (mediaId.startsWith('yt_')) {
+      return mediaId.replace('yt_', '');
+    }
+    return mediaId;
+  };
+
   return (
     <View style={[styles.card, {width: grid ? '48.5%' : '100%'}]}>
       {/* Image Section */}
       <View style={styles.imageContainer}>
-        <Image source={{uri: image}} style={styles.image} resizeMode='cover'/>
+        {image.startsWith?.('yt_')?<View style={{width: '100%', height: '100%', marginRight: 10,alignItems:'center',justifyContent:'center'}}>
+          <YoutubePlayer
+            height={'100%'}
+            width={'100%'}
+            videoId={extractYoutubeId(image)}
+            play={false}
+          />
+        </View>:
+        <Image source={{uri: image}} style={styles.image} resizeMode='cover'/>}
         <View style={[styles.overlay, {width: grid ? '95%' : '97%'}]}>
           <Text style={styles.idText}>{id}</Text>
           <View style={styles.iconRow}>
@@ -194,7 +212,7 @@ const NewsCard = ({id, image, author, title, date, grid, type,url}) => {
       </TouchableOpacity>
       {/* Footer Section */}
       <View style={styles.footer}>
-        <Text style={FontStyle.titleSmall}>{formattedDate}</Text>
+        <Text style={FontStyle.titleSmall}>{formatToIST(date)}</Text>
         <TouchableOpacity style={styles.dotsIcon} onPress={handleDotsPress}>
           <VectorIcon
             name="dots-vertical"

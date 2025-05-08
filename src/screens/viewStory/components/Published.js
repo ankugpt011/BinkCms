@@ -39,6 +39,7 @@ const Published = ({ grid = false ,FilterOption,fromDate,toDate,category,searche
     if (res?.news?.length > 0) {
       setStoryData(prev => [...prev, ...res.news]);
       setStartIndex(start + PAGE_SIZE);
+      console.log('publishedcsjncdjbhvcjns',res)
     } else {
       setHasMore(false); // No more data to load
     }

@@ -40,6 +40,7 @@ const Private = ({grid = false ,FilterOption,fromDate,toDate,category,searched =
     if (res?.news?.length > 0) {
       setStoryData(prev => [...prev, ...res.news]);
       setStartIndex(start + PAGE_SIZE);
+      console.log('res12345675432',res)
     } else {
       setHasMore(false); // No more data to load
     }

@@ -23,3 +23,4 @@ export const UpdatePromotedNews =(newsIds,categoryId,sessionId,action,priority)=
 export const imageDetailNews =(sessionId,mediaIds,image_caption)=>`/dev/h-api/update-image-caption?sessionId=${sessionId}&mediaId=${mediaIds}&image_caption=${image_caption}`
 export const deleteStory =(sessionId,uid)=> `/dev/h-api/story?sessionId=${sessionId}&action=delete-story&uid=${uid}&state=DELETED`
 export const deleteNews =(sessionId,uid)=> `/dev/h-api/deleteNews?sessionId=${sessionId}&newsId=${uid}`
+export const PartnerUser=(search)=> `/dev/h-api/partner-users?startIndex=0&count=10&search=${search}`
