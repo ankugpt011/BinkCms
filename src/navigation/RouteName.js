@@ -8,7 +8,8 @@ const RouteName = {
     PROMOTED_NEWS : 'promoted-news',
     XHR_REQUEST:'xhr-request',
     NEW_DETAIL_PAGE:'new-detail-page',
-    SHOW_BUZZ:'show-buzz'
+    SHOW_BUZZ:'show-buzz',
+    EDIT_BUZZ:'edit-buzz'
 
 
     

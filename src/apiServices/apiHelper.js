@@ -24,3 +24,5 @@ export const imageDetailNews =(sessionId,mediaIds,image_caption)=>`/dev/h-api/up
 export const deleteStory =(sessionId,uid)=> `/dev/h-api/story?sessionId=${sessionId}&action=delete-story&uid=${uid}&state=DELETED`
 export const deleteNews =(sessionId,uid)=> `/dev/h-api/deleteNews?sessionId=${sessionId}&newsId=${uid}`
 export const PartnerUser=(search)=> `/dev/h-api/partner-users?startIndex=0&count=10&search=${search}`
+export const buzzList =(newsId)=>`/dev/h-api/news-buzz?newsId=${newsId}&startIndex=0&count=10`
+export const updateBuzz =()=>`/dev/h-api/add-buzz`

@@ -103,6 +103,7 @@ const CreateStory = () => {
         }
 
         const res = await callApi(null, Create_Story_PageLayout());
+        console.log('res12345678987654',res)
         if (res) {
           await AsyncStorage.setItem('CreateStoryLayout', JSON.stringify(res));
           setData(res);

@@ -255,7 +255,7 @@ const NewsCard = ({id, image, author, title, date, grid, type,url}) => {
                     Mark {type == 'Published' ? 'PRIVATE' : 'APPROVED'}
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.menuItem} onPress={() => {}}>
+                <TouchableOpacity style={styles.menuItem} onPress={() => {navigation.navigate(RouteName.SHOW_BUZZ,{newsId:id});closeMenu()}}>
                   <VectorIcon
                     name="flash"
                     size={18}
