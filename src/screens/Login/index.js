@@ -28,7 +28,7 @@ import DeviceInfo from 'react-native-device-info';
 const Login = () => {
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
-  const [partnersCode, setPartnersCode] = useState('OP4JLH12');
+  const [partnersCode, setPartnersCode] = useState('');
   const { partnerData } = useSelector(state => state.login);
   const [partnerSuccess,setPartnerSuccess]=useState(false)
   const dispatch = useDispatch()
@@ -73,7 +73,7 @@ const Login = () => {
       dispatch(setPartnerData(partnerRes));
       setPartnerSuccess(true);
     } else {
-      ToastAndroid.show('Invalid Partner Code or API Error', ToastAndroid.SHORT);
+      ToastAndroid.show('Invalid Partner Code', ToastAndroid.SHORT);
       setPartnerSuccess(false);
     }
   };
@@ -97,6 +97,8 @@ const Login = () => {
   
 
       const response = await callLoginApi(null, loginUrl);
+
+      console.log('responsefghbjnkmjhg',response)
   
       if (response) {
         dispatch(setLoginData(response));
@@ -106,7 +108,7 @@ const Login = () => {
         });
         
       } else {
-        ToastAndroid.show('Login failed', ToastAndroid.SHORT);
+        ToastAndroid.show('Invalid Detail', ToastAndroid.SHORT);
       }
     } catch (err) {
       console.error('Login error:', err);

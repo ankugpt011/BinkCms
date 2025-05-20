@@ -27,6 +27,7 @@ const Profile = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const [showClearCacheModal, setShowClearCacheModal] = useState(false);
+  const [logoutModal, setLogoutModal] = useState(false);
   const userData = useSelector(state => state.login.userData);
   const url = 'https://support.blinkcms.ai/#login';
 
@@ -73,7 +74,8 @@ const Profile = () => {
       //   index: 0,
       //   routes: [{name: RouteName.LOGIN}],
       // });
-      handleLogout()
+      setLogoutModal(true)
+      // handleLogout()
     } else if (item.name == 'Support') {
       Linking.openURL(url).catch(err =>
         console.error('Failed to open URL:', err),
@@ -231,6 +233,44 @@ const Profile = () => {
           </View>
         </View>
       </Modal>
+      <Modal
+        transparent={true}
+        visible={logoutModal}
+        onRequestClose={() => setLogoutModal(false)}
+        animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Logout</Text>
+            <Text style={styles.modalText}>
+              Are you sure you want to logout?
+            </Text>
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={() => setLogoutModal(false)}
+                disabled={clearCacheLoading}>
+                <Text style={styles.buttonText}>No</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  styles.confirmButton,
+                  clearCacheLoading && {opacity: 0.7},
+                ]}
+                onPress={()=>handleLogout()}
+                disabled={clearCacheLoading}>
+                {clearCacheLoading ? (
+                  <ActivityIndicator color="white" size="small" />
+                ) : (
+                  <Text style={styles.buttonText}>Yes</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 };
@@ -275,7 +315,7 @@ const styles = StyleSheet.create({
     minWidth: 60,
   },
   cancelButton: {
-    backgroundColor: Apptheme.color.line,
+    backgroundColor: Apptheme.color.boxOutline,
   },
   confirmButton: {
     backgroundColor: Apptheme.color.primary,

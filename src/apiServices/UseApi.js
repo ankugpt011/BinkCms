@@ -51,10 +51,10 @@ const useApi = ({method = 'GET', url = '', manual = false, cmsUrl = false}) => {
             console.log('beforepostapi', finalUrl, body, config);
 
             res = await axios.post(finalUrl, body, config);
-            ToastAndroid.show(
-              'Saved successfully. send successfully to server',
-              ToastAndroid.SHORT,
-            );
+            // ToastAndroid.show(
+            //   'Saved successfully. send successfully to server',
+            //   ToastAndroid.SHORT,
+            // );
             console.log('Postreswer', res);
             break;
           case 'PUT':

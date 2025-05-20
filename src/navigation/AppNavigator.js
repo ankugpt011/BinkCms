@@ -8,6 +8,7 @@ import PromotedNews from '../screens/promotedNews';
 import XHRRequest from '../screens/XHRRequest';
 import {useSelector} from 'react-redux';
 import NewDetailPage from '../screens/viewStory/NewDetailPage';
+import ShowBuzz from '../screens/showBUzz';
 
 const Stack = createNativeStackNavigator();
 
@@ -34,6 +35,7 @@ const AppNavigator = () => {
       <Stack.Screen name={RouteName.PROMOTED_NEWS} component={PromotedNews} />
       <Stack.Screen name={RouteName.XHR_REQUEST} component={XHRRequest} />
       <Stack.Screen name={RouteName.NEW_DETAIL_PAGE} component={NewDetailPage} />
+      <Stack.Screen name={RouteName.SHOW_BUZZ} component={ShowBuzz} />
     </Stack.Navigator>
   );
 };

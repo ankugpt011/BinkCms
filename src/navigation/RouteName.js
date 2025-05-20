@@ -7,7 +7,8 @@ const RouteName = {
     LOGIN:'login',
     PROMOTED_NEWS : 'promoted-news',
     XHR_REQUEST:'xhr-request',
-    NEW_DETAIL_PAGE:'new-detail-page'
+    NEW_DETAIL_PAGE:'new-detail-page',
+    SHOW_BUZZ:'show-buzz'
 
 
     

@@ -12,6 +12,7 @@ import {
   Modal,
   Pressable,
   FlatList,
+  ToastAndroid,
 } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 import VectorIcon from '../../assets/vectorIcons';
@@ -165,6 +166,10 @@ const MediaSelector = ({onMediaSelect, initialMedia, fieldElement,files}) => {
         const response = await uploadImage(image);
         setNewMediaItems(true)
         if (response) {
+          ToastAndroid.show(
+            'Image successfully uploaded',
+            ToastAndroid.SHORT,
+          );
           uploadedMedia.push({
             type: 'image',
             uri: image.path, // Local path for display
@@ -298,6 +303,10 @@ const MediaSelector = ({onMediaSelect, initialMedia, fieldElement,files}) => {
       const apiUrl = `/dev/h-api/update-image-caption?sessionId=${userData?.sessionId}&mediaId=${mediaId}&image_caption=${imageCaption}`;
      const res = await postData(null, apiUrl);
      console.log('resxcvbffvdcsxascdvfb',res)
+     ToastAndroid.show(
+                   'caption successfully added',
+                   ToastAndroid.SHORT,
+                 );
       setShowImageDetailModal(false);
     } catch (error) {
       Alert.alert('Error', 'Failed to save caption');

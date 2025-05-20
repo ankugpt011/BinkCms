@@ -647,15 +647,17 @@ const styles = StyleSheet.create({
     color: Apptheme.color.background,
   },
   dropdownContainer: {
-    backgroundColor: 'rgb(255,255,255)',
+    backgroundColor: 'white',
     borderColor: 'transparent',
+    elevation:3
   },
   dropdownItem: {
     color: Apptheme.color.black,
+    paddingVertical:14
   },
   dropdownSelectedItem: {
     fontWeight: 'bold',
-    color: Apptheme.color.black,
+    color: Apptheme.color.primary,
   },
   authorDropdown: {
     position: 'absolute',

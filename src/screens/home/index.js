@@ -200,6 +200,8 @@ const Home = () => {
   const dispatch = useDispatch();
   const userData = useSelector(state => state.login.userData);
 
+  console.log('userSeleteor',userData)
+
   const {callApi: postStoryApi} = useApi({
     method: 'POST',
     url: '',
@@ -420,7 +422,7 @@ const Home = () => {
         <Gap m8 />
         <Text
           style={[FontStyle.headingLarge, {color: Apptheme.color.background}]}>
-          Welcome, Vishakha Yadav
+          Welcome, {userData?.name}
         </Text>
         <Gap m5 />
         <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>

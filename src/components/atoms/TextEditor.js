@@ -104,7 +104,7 @@ const TextEditor = ({ placeholder = 'Start typing here...', onChange,initialCont
           actions.heading1,
           actions.insertBulletsList,
           actions.insertOrderedList,
-          actions.insertLink,
+          // actions.insertLink,
           actions.undo,
           actions.redo,
           actions.insertImage,
