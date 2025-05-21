@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, Dimensions } from 'react-native';
 import { RichEditor, RichToolbar, actions } from 'react-native-pell-rich-editor';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -10,13 +10,20 @@ import useApi from '../../apiServices/UseApi';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-const TextEditor = ({ placeholder = 'Start typing here...', onChange,initialContent }) => {
+const TextEditor = ({ placeholder = 'Start typing here...', onChange,initialContent,key }) => {
   const richText = useRef();
-  
+  const [editorKey, setEditorKey] = useState(0);
   const userData = useSelector(state => state.login.userData);
   const { postData } = useApi({ method: 'POST', manual: true });
 
   console.log('initialContentTextEditor',initialContent)
+
+  useEffect(() => {
+    if (initialContent === '' || initialContent === undefined) {
+      // Force editor reset by changing the key
+      setEditorKey(prevKey => prevKey + 1);
+    }
+  }, [initialContent, key]);
 
   const handleChange = (text) => {
     const plainText = text.replace(/<[^>]*>/g, '').trim();
@@ -124,6 +131,7 @@ const TextEditor = ({ placeholder = 'Start typing here...', onChange,initialCont
         keyboardShouldPersistTaps="handled"
       >
         <RichEditor
+        key={editorKey}
           ref={richText}
           placeholder={placeholder}
           

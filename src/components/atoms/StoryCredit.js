@@ -15,7 +15,7 @@ const StoryCredit = ({
   types = [],
   onChange = () => {},
   initialCredits = [],
-  story_credits
+  story_credits,key
 }) => {
   console.log('story_credits-story_credits',story_credits)
   // Initialize credits state with either initialCredits or parsed story_credits
@@ -47,6 +47,28 @@ const StoryCredit = ({
     // Default empty array
     return [];
   });
+
+
+  useEffect(() => {
+    // This will re-run your initial state logic when key changes
+    if (initialCredits.length > 0) {
+      setCredits(initialCredits);
+    } else if (story_credits && story_credits.length > 0) {
+      setCredits(story_credits.map(credit => ({
+        type: credit.label,
+        user: {
+          userId: credit.authorId,
+          name: credit.author_name,
+          email: ''
+        },
+        input: credit.author_name,
+        users: [],
+        uniqueId: generateUniqueId()
+      })));
+    } else {
+      setCredits([]);
+    }
+  }, [key]);
 
 
 

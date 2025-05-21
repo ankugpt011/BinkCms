@@ -210,6 +210,7 @@ const RenderItem = ({
 
         return item?.element == 'mediaIds' ? (
           <MediaSelector
+          key={formValues.tempProcessId}
           onMediaSelect={(mediaIds) => handleValueChange(mediaIds)}
           initialMedia={formValues.mediaIds}
           fieldElement="mediaIds"
@@ -217,6 +218,7 @@ const RenderItem = ({
         />
         ) : (
           <MediaSelector
+          key={formValues.tempProcessId}
             onMediaSelect={extraMediaIds => handleValueChange(extraMediaIds)}
             initialMedia={formValues.extraMediaId}
             fieldElement="extraMediaId"
@@ -227,6 +229,7 @@ const RenderItem = ({
       case 'COMMON_TAGS':
         return (
           <CommonTags
+          key={formValues.tempProcessId}
             data={tagsData?.tags || []}
             onSelect={handleTagsSelect}
             initialTags={
@@ -240,6 +243,7 @@ const RenderItem = ({
         console.log('item?.elementSTORY_CREDIT',item?.element)
         return (
           <StoryCredit
+          key={formValues.tempProcessId}
             types={types}
             onChange={handleCreditsChange}
             initialValues={formValues}
@@ -251,6 +255,7 @@ const RenderItem = ({
         console.log('TEXT_EDITOR', fieldValue);
         return (
           <TextEditor
+          key={formValues.tempProcessId}
             onChange={handleValueChange}
             initialContent={fieldValue}
           />

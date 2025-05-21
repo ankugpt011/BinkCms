@@ -45,6 +45,9 @@ const CreateStory = () => {
   const [netStatus, setNetStatus] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [invalidFields, setInvalidFields] = useState([]);
+  
+  
+
   const route = useRoute();
   const [initialized, setInitialized] = useState(false);
   const navigation = useNavigation();
@@ -174,6 +177,7 @@ const CreateStory = () => {
 
   const handleNewStory = () => {
     // Reset form values (keep sessionId and action)
+
     setFormValues({
       action: 'create_multipage',
       tempProcessId: generateId(),
@@ -190,6 +194,7 @@ const CreateStory = () => {
     setActiveIndex(0);
     setInvalidFields([]);
     setIsDirty(false);
+    setInitialized(false); 
 
     // Scroll back to top
     scrollViewRef.current?.scrollTo({y: 0, animated: true});
@@ -225,11 +230,12 @@ const CreateStory = () => {
     if (!net.isConnected) {
       const pendingQueue =
         JSON.parse(await AsyncStorage.getItem('pendingSubmissions')) || [];
-      pendingQueue.push(formValues);
+      pendingQueue.push(body);
       await AsyncStorage.setItem(
         'pendingSubmissions',
         JSON.stringify(pendingQueue),
       );
+      console.log('pendingQueue',pendingQueue)
       ToastAndroid.show(
         'Saved locally. Will sync when online.',
         ToastAndroid.SHORT,
@@ -300,6 +306,8 @@ const CreateStory = () => {
           console.log('📡 Online detected - syncing pending submissions...');
 
           for (const form of queue) {
+            
+            console.log('form234567898765432',form)
             try {
               await postStoryApi(form, CreateStoryApi(true));
             } catch (err) {
@@ -464,7 +472,9 @@ const CreateStory = () => {
                 + NEW
               </Text>
             </TouchableOpacity>
+
           </View>
+         
           <Gap m9 />
           <Gap m3 />
         </View>

@@ -22,7 +22,7 @@ import FontStyle from '../../assets/theme/FontStyle';
 import Gap from './Gap';
 import YoutubePlayer from 'react-native-youtube-iframe';
 
-const MediaSelector = ({onMediaSelect, initialMedia, fieldElement,files}) => {
+const MediaSelector = ({onMediaSelect, initialMedia, fieldElement,files,key}) => {
   
   const [mediaItems, setMediaItems] = useState([]);
   const [newmediaItems, setNewMediaItems] = useState(false);
@@ -42,6 +42,10 @@ const MediaSelector = ({onMediaSelect, initialMedia, fieldElement,files}) => {
   useEffect(() => {
     if(newmediaItems){
       return
+    }
+    if (initialMedia == undefined || initialMedia == null) {
+      setMediaItems([]);
+      return;
     }
     if (!initialMedia) {
       setMediaItems([]);
@@ -80,7 +84,7 @@ const MediaSelector = ({onMediaSelect, initialMedia, fieldElement,files}) => {
     console.log('parsedMedia',parsedMedia)
     
     setMediaItems(parsedMedia);
-  }, [initialMedia, files]);
+  }, [initialMedia, files,key]);
  
   // useEffect(() => {
   //   if (!initialMedia) {

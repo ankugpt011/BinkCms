@@ -3,7 +3,7 @@ import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import {Dropdown} from 'react-native-element-dropdown';
 import FontStyle from '../../assets/theme/FontStyle';
 
-const CommonTags = ({data = [], onSelect, placeholder = 'Select tags',initialTags}) => {
+const CommonTags = ({data = [], onSelect, placeholder = 'Select tags',initialTags,key}) => {
   const [selectedItems, setSelectedItems] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownValue, setDropdownValue] = useState(null);
@@ -12,13 +12,19 @@ const CommonTags = ({data = [], onSelect, placeholder = 'Select tags',initialTag
   console.log('dataCommonTags',data)
 
   useEffect(() => {
+
+    if (initialTags && initialTags.length === 0) {
+      setSelectedItems([]);
+      return;
+    }
+
     if (initialTags?.length > 0 && data.length > 0) {
       const matchedTags = data.filter(tag => initialTags.includes(tag.name));
       console.log('matchedTags',matchedTags)
       setSelectedItems(matchedTags);
       // onSelect(matchedTags);
     }
-  }, [initialTags, data]);
+  }, [initialTags, data,key]);
   
 
   const handleSelect = value => {
