@@ -190,7 +190,7 @@ const NewDetailPage = () => {
   const getCategoryName = categoryId => {
     if (!categoryId || !categoriesData) return null;
 
-    console.log('getCategoryName', categoryId);
+    console.log('getCategoryName', categoryId,categoriesData);
 
     const foundCategory = categoriesData.find(
       category => category.catId == categoryId,
@@ -373,7 +373,7 @@ const NewDetailPage = () => {
           </Text>
           <Gap m1 />
           <Text style={FontStyle.labelLarge}>
-            {getCategoryName(data?.category) || 'No category found'}
+            {getCategoryName(data?.category) ||getCategoryName(data?.maincategory) ||'No category found'}
           </Text>
           <Gap m3 />
           <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
@@ -381,7 +381,7 @@ const NewDetailPage = () => {
           </Text>
           <Gap m1 />
           <Text style={FontStyle.labelLarge}>
-            {getOtherCategoryNames(data?.otherCategoryIds)}
+            {getOtherCategoryNames(data?.otherCategoryIds)||getOtherCategoryNames(data?.categories)}
           </Text>
           <Gap m3 />
           <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
@@ -582,7 +582,7 @@ const NewDetailPage = () => {
               Date Created
             </Text>
             <Text style={[FontStyle.labelLarge, {flex: 3}]}>
-              {data?.date_news || data?.date_created}
+              {formatToIST(data?.date_news||data?.date_created||data?.date_updated)}
             </Text>
           </View>
           <View
@@ -605,6 +605,7 @@ const NewDetailPage = () => {
         </View>
 
         <Gap m4 />
+        {route?.params?.type === 'Draft'?null:
         <View
           style={{
             padding: Apptheme.spacing.marginHorizontal,
@@ -642,7 +643,7 @@ const NewDetailPage = () => {
             <Text style={[FontStyle.labelLarge]}>Changed To</Text>
             <Text style={FontStyle.label}>By: archana@blinkcms.ai</Text>
           </View>
-        </View>
+        </View>}
         <Gap m4 />
 
         <Gap ml />

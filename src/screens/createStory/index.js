@@ -240,6 +240,13 @@ const CreateStory = () => {
         'Saved locally. Will sync when online.',
         ToastAndroid.SHORT,
       );
+      if (
+        newState == 'APPROVED' ||
+        newState == 'SCHEDULED' ||
+        newState == 'SUBMITTED'
+      ) {
+        handleNewStory();
+      }
       return;
     }
 
@@ -290,6 +297,9 @@ const CreateStory = () => {
     return () => clearInterval(interval); // cleanup on unmount
   }, [isDirty, formValues]);
 
+
+  
+
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(async state => {
       if (state.isConnected && userData?.sessionId) {
@@ -309,7 +319,7 @@ const CreateStory = () => {
             
             console.log('form234567898765432',form)
             try {
-              await postStoryApi(form, CreateStoryApi(true));
+              await postStoryApi(form, CreateStoryApi(false));
             } catch (err) {
               console.error('❌ Failed syncing a form:', err);
             }

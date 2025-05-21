@@ -31,6 +31,7 @@ const Login = () => {
   const [partnersCode, setPartnersCode] = useState('');
   const { partnerData } = useSelector(state => state.login);
   const [partnerSuccess,setPartnerSuccess]=useState(false)
+  const navigation = useNavigation();
   const dispatch = useDispatch()
   const { data, loading, error, callApi } = useApi({
     method: 'GET',
@@ -117,7 +118,7 @@ const Login = () => {
 
   
 
-  const navigation = useNavigation();
+  
 
   useEffect(() => {
     GoogleSignin.configure({
@@ -191,7 +192,7 @@ const Login = () => {
   return (
     <ImageBackground
       source={{
-        uri: 'https://plus.unsplash.com/premium_photo-1661481626110-b020c1e1f54b?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8dHlwaW5nJTIwdmVydGljYWx8ZW58MHx8MHx8fDA%3D',
+        uri: 'https://plus.unsplash.com/premium_photo-1661475861393-7b2561865338?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8ODR8fHR5cGluZyUyMHBvcnRyYWl0fGVufDB8fDB8fHww',
       }}
       style={styles.imageBackground}
       resizeMode="cover"

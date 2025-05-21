@@ -158,7 +158,9 @@
 // const styles = StyleSheet.create({});
 
 import {
+  ActivityIndicator,
   FlatList,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -166,9 +168,9 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import useApi from '../../apiServices/UseApi';
-import {buzzList} from '../../apiServices/apiHelper';
+import {buzzList, deleteBuzz, updateBuzz} from '../../apiServices/apiHelper';
 import {useNavigation, useRoute, useIsFocused} from '@react-navigation/native';
 import Apptheme from '../../assets/theme/Apptheme';
 import FontStyle from '../../assets/theme/FontStyle';
@@ -178,6 +180,7 @@ import RenderHtml from 'react-native-render-html';
 import RouteName from '../../navigation/RouteName';
 import {formatToIST} from '../../components/atoms/formatToIST';
 import  VectorIcon  from '../../assets/vectorIcons';
+import { useSelector } from 'react-redux';
 
 const ShowBuzz = () => {
   const {width} = useWindowDimensions();
@@ -185,6 +188,11 @@ const ShowBuzz = () => {
   const isFocused = useIsFocused(); // Hook to check if screen is focused
   const route = useRoute();
   const newsId = route?.params?.newsId;
+  const [deleteModal,setDeleteModal]= useState(false)
+  const [buzzId,setBuzzId]= useState()
+  const userData = useSelector(state => state.login.userData);
+
+  const {postData} = useApi({method: 'POST', manual: true});
 
   const tagsStyles = {
     div: {
@@ -213,6 +221,34 @@ const ShowBuzz = () => {
     error: buzzError,
     callApi: fetchBuzzNews,
   } = useApi({method: 'GET', manual: true});
+
+  const handleDelete = async () => {
+      try {
+
+        const payload = {
+          sessionId: userData?.sessionId,
+          newsId: newsId,
+          buzzId:buzzId
+        };
+        console.log('payloadpayload',payload)
+        const response = await postData(payload, deleteBuzz());
+        console.log('response',response)
+  
+        if (response) {
+          setDeleteModal(false)
+          const url = buzzList(newsId);     
+      fetchBuzzNews(null, url); 
+
+        }
+      } catch (error) {
+        Alert.alert('Error', 'Failed to save buzz. Please try again.');
+        console.error('Submit error:', error);
+      } finally {
+        setIsPublishing(false);
+        setIsSaving(false);
+      }
+    };
+
 
   // Fetch data when screen focuses or newsId changes
   useEffect(() => {
@@ -252,7 +288,7 @@ const ShowBuzz = () => {
               />
             </TouchableOpacity>
             <Gap row m5 />
-            <TouchableOpacity>
+            <TouchableOpacity onPress={()=>{setDeleteModal(true);setBuzzId(item?.id)}}>
               <VectorIcon material-community-icon name="delete" size={20} color={Apptheme.color.red} />
             </TouchableOpacity>
           </View>
@@ -321,7 +357,8 @@ const ShowBuzz = () => {
 
       {buzzLoading ? (
         <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          <Text>Loading...</Text>
+          {/* <Text style={FontStyle.labelMedium}>Loading...</Text> */}
+          <ActivityIndicator color={Apptheme.color.primary} size={'large'}/>
         </View>
       ) : buzzError ? (
         <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
@@ -379,10 +416,95 @@ const ShowBuzz = () => {
           }
         />
       )}
+      <Modal
+              transparent={true}
+              visible={deleteModal}
+              onRequestClose={() => setDeleteModal(false)}
+              animationType="fade">
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContainer}>
+                  <Text style={styles.modalTitle}>Delete</Text>
+                  <Text style={styles.modalText}>
+                    Are you sure you want to Delete this buzz?
+                  </Text>
+      
+                  <View style={styles.buttonContainer}>
+                    <TouchableOpacity
+                      style={[styles.button, styles.cancelButton]}
+                      onPress={() => setDeleteModal(false)}
+                      // disabled={clearCacheLoading}
+                      >
+                      <Text style={styles.buttonText}>No</Text>
+                    </TouchableOpacity>
+      
+                    <TouchableOpacity
+                      style={[
+                        styles.button,
+                        styles.confirmButton,
+                        // clearCacheLoading && {opacity: 0.7},
+                      ]}
+                      onPress={()=>handleDelete()}
+                      // disabled={clearCacheLoading}
+                      >
+                      
+                        <Text style={styles.buttonText}>Yes</Text>
+                      
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            </Modal>
     </View>
   );
 };
 
 export default ShowBuzz;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: '80%',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: Apptheme.color.primary,
+  },
+  modalText: {
+    fontSize: 16,
+    marginBottom: 20,
+    color: Apptheme.color.black,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  button: {
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    marginLeft: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 60,
+  },
+  cancelButton: {
+    backgroundColor: Apptheme.color.boxOutline,
+  },
+  confirmButton: {
+    backgroundColor: Apptheme.color.primary,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+});

@@ -17,16 +17,20 @@ import dayjs from 'dayjs';
 import {useNavigation} from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
 import useApi from '../../apiServices/UseApi';
-import {deleteNews, deleteStory, UpdateNewsStatus} from '../../apiServices/apiHelper';
+import {
+  deleteNews,
+  deleteStory,
+  UpdateNewsStatus,
+} from '../../apiServices/apiHelper';
 import {useDispatch, useSelector} from 'react-redux';
 import {triggerStoryRefresh} from '../../redux/reducer/StoryUpdateSlice';
 import WebView from 'react-native-webview';
 import YoutubePlayer from 'react-native-youtube-iframe';
-import { formatToIST } from '../atoms/formatToIST';
+import {formatToIST} from '../atoms/formatToIST';
 // import Clipboard from '@react-native-clipboard/clipboard';
 
-const NewsCard = ({id, image, author, title, date, grid, type,url}) => {
-  console.log('datedatedatefvgbvfdcsx',date)
+const NewsCard = ({id, image, author, title, date, grid, type, url}) => {
+  console.log('datedatedatefvgbvfdcsx', date);
   const formattedDate = dayjs(date).format('MMM DD, YYYY hh:mm A');
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -45,11 +49,11 @@ const NewsCard = ({id, image, author, title, date, grid, type,url}) => {
 
   const [menuVisible, setMenuVisible] = useState(false);
   const userData = useSelector(state => state.login.userData);
-  console.log('userDatauserData',userData)
+  console.log('userDatauserData', userData);
   const sessionId = userData?.sessionId;
 
   const {postData} = useApi({method: 'POST', manual: true});
-  const {postData:postDeleteData} = useApi({method: 'GET', manual: true});
+  const {postData: postDeleteData} = useApi({method: 'GET', manual: true});
 
   const handleDotsPress = () => {
     setMenuVisible(true);
@@ -94,22 +98,23 @@ const NewsCard = ({id, image, author, title, date, grid, type,url}) => {
     // closeMenu(); // Optionally close the menu
   };
 
-  
-
   const handleDelete = async () => {
     closeMenu();
-    
+
     try {
-      const endpoint = type === 'Draft' ? deleteStory(sessionId, id) : deleteNews(sessionId, id);
-      console.log('endpoint23er',endpoint)
+      const endpoint =
+        type === 'Draft'
+          ? deleteStory(sessionId, id)
+          : deleteNews(sessionId, id);
+      console.log('endpoint23er', endpoint);
       const response = await postDeleteData(
-        null, 
-        endpoint, 
-        {method: 'GET'} // Specify GET method here
+        null,
+        endpoint,
+        {method: 'GET'}, // Specify GET method here
       );
       if (response) {
         console.log('Story deleted successfully');
-        
+
         dispatch(
           triggerStoryRefresh({
             id,
@@ -134,19 +139,47 @@ const NewsCard = ({id, image, author, title, date, grid, type,url}) => {
     return mediaId;
   };
 
+  console.log('typedfgvbhjnkmmjnbhgv', type);
+
   return (
     <View style={[styles.card, {width: grid ? '48.5%' : '100%'}]}>
       {/* Image Section */}
       <View style={styles.imageContainer}>
-        {image.startsWith?.('yt_')?<View style={{width: '100%', height: '100%', marginRight: 10,alignItems:'center',justifyContent:'center'}}>
-          <YoutubePlayer
-            height={'100%'}
-            width={'100%'}
-            videoId={extractYoutubeId(image)}
-            play={false}
+        {image.startsWith?.('yt_') ? (
+          <View
+            style={{
+              width: '100%',
+              height: '100%',
+              marginRight: 10,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <YoutubePlayer
+              height={'100%'}
+              width={'100%'}
+              videoId={extractYoutubeId(image)}
+              play={false}
+            />
+          </View>
+        ) : image ? (
+          <Image
+            source={{uri: image}}
+            style={styles.image}
+            resizeMode="cover"
           />
-        </View>:
-        <Image source={{uri: image}} style={styles.image} resizeMode='cover'/>}
+        ) : (
+          <View
+            style={[
+              styles.image,
+              {alignItems: 'center', justifyContent: 'center'},
+            ]}>
+               <VectorIcon
+                    name="image-size-select-actual"
+                    size={20}
+                    color={Apptheme.color.black}
+                  />
+            </View>
+        )}
         <View style={[styles.overlay, {width: grid ? '95%' : '97%'}]}>
           <Text style={styles.idText}>{id}</Text>
           <View style={styles.iconRow}>
@@ -159,7 +192,7 @@ const NewsCard = ({id, image, author, title, date, grid, type,url}) => {
                           id: id,
                           type: type,
                         })
-                      : handleEditPress;
+                      : handleEditPress();
                   }}
                   style={styles.icon}>
                   <VectorIcon
@@ -177,7 +210,7 @@ const NewsCard = ({id, image, author, title, date, grid, type,url}) => {
                         id: id,
                         type: type,
                       })
-                    : handleEditPress;
+                    : handleEditPress();
                 }}
                 style={styles.icon}>
                 <VectorIcon
@@ -228,7 +261,11 @@ const NewsCard = ({id, image, author, title, date, grid, type,url}) => {
         onRequestClose={closeMenu}>
         <Pressable style={styles.modalOverlay} onPress={closeMenu}>
           <View style={styles.menuContainer}>
-            <TouchableOpacity style={styles.menuItem} onPress={() => {handleDelete()}}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                handleDelete();
+              }}>
               <VectorIcon
                 name="delete"
                 size={18}
@@ -255,7 +292,12 @@ const NewsCard = ({id, image, author, title, date, grid, type,url}) => {
                     Mark {type == 'Published' ? 'PRIVATE' : 'APPROVED'}
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.menuItem} onPress={() => {navigation.navigate(RouteName.SHOW_BUZZ,{newsId:id});closeMenu()}}>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => {
+                    navigation.navigate(RouteName.SHOW_BUZZ, {newsId: id});
+                    closeMenu();
+                  }}>
                   <VectorIcon
                     name="flash"
                     size={18}
@@ -265,7 +307,7 @@ const NewsCard = ({id, image, author, title, date, grid, type,url}) => {
                 </TouchableOpacity>
               </>
             )}
-            <TouchableOpacity  style={styles.menuItem} onPress={handleCopyUrl}>
+            <TouchableOpacity style={styles.menuItem} onPress={handleCopyUrl}>
               <VectorIcon name="link" size={18} color={Apptheme.color.black} />
               <Text style={styles.menuText}>Copy URL</Text>
             </TouchableOpacity>
@@ -317,12 +359,11 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 4,
     overflow: 'hidden',
-    backgroundColor:Apptheme.color.imageBackground
+    backgroundColor: Apptheme.color.imageBackground,
   },
   image: {
     height: '100%',
     width: '100%',
-    
   },
   overlay: {
     position: 'absolute',

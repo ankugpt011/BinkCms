@@ -645,6 +645,7 @@ const styles = StyleSheet.create({
   dropdownText: {
     fontSize: 14,
     color: Apptheme.color.background,
+    
   },
   dropdownContainer: {
     backgroundColor: 'white',
@@ -653,7 +654,7 @@ const styles = StyleSheet.create({
   },
   dropdownItem: {
     color: Apptheme.color.black,
-    paddingVertical:14
+    // paddingVertical:14
   },
   dropdownSelectedItem: {
     fontWeight: 'bold',

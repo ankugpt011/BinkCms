@@ -73,6 +73,10 @@ const useApi = ({method = 'GET', url = '', manual = false, cmsUrl = false}) => {
         const errMsg =
           err?.response?.data || err?.message || 'Something went wrong';
         console.log('API Error:', errMsg);
+        ToastAndroid.show(
+          errMsg,
+              ToastAndroid.SHORT,
+            );
         setError(errMsg); // update error state
         return null; // return null on error
       } finally {

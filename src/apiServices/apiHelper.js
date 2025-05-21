@@ -26,3 +26,4 @@ export const deleteNews =(sessionId,uid)=> `/dev/h-api/deleteNews?sessionId=${se
 export const PartnerUser=(search)=> `/dev/h-api/partner-users?startIndex=0&count=10&search=${search}`
 export const buzzList =(newsId)=>`/dev/h-api/news-buzz?newsId=${newsId}&startIndex=0&count=10`
 export const updateBuzz =()=>`/dev/h-api/add-buzz`
+export const deleteBuzz =()=>`/dev/h-api/delete-buzz`
