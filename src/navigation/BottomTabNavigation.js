@@ -60,7 +60,7 @@ const BottomTabNavigation = () => {
                 }
               />
             ),
-          tabBarLabel: 'CreateStory',
+          tabBarLabel: 'Create Story',
         }}
       />
       <Tab.Screen
@@ -76,7 +76,7 @@ const BottomTabNavigation = () => {
                 }
               />
             ),
-          tabBarLabel: 'ViewStory',
+          tabBarLabel: 'Newsroom',
         }}
       />
       <Tab.Screen

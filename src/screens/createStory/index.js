@@ -4,6 +4,7 @@ import {
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StatusBar,
@@ -45,8 +46,11 @@ const CreateStory = () => {
   const [netStatus, setNetStatus] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [invalidFields, setInvalidFields] = useState([]);
-  
-  
+  const [newStoryModal, setNewStoryModal] = useState(false);
+  const [newsModal, setNewsModal] = useState(false);
+  const [publishStatus,setPublishStatus]=useState('')
+  const [idresponse,setIdResponse]=useState({})
+
 
   const route = useRoute();
   const [initialized, setInitialized] = useState(false);
@@ -106,7 +110,7 @@ const CreateStory = () => {
         }
 
         const res = await callApi(null, Create_Story_PageLayout());
-        console.log('res12345678987654',res)
+        console.log('res12345678987654', res);
         if (res) {
           await AsyncStorage.setItem('CreateStoryLayout', JSON.stringify(res));
           setData(res);
@@ -139,7 +143,7 @@ const CreateStory = () => {
     }
   }, [formValues, isDirty]);
 
-  console.log('formValuesformValuessdfvgbfvdcsx',formValues)
+  console.log('formValuesformValuessdfvgbfvdcsx', formValues);
 
   const updateFormValue = (fieldKey, value) => {
     console.log('formUpdate123');
@@ -191,14 +195,16 @@ const CreateStory = () => {
     }
 
     // Reset UI states
+    setIdResponse({})
     setActiveIndex(0);
     setInvalidFields([]);
     setIsDirty(false);
-    setInitialized(false); 
+    setInitialized(false);
 
     // Scroll back to top
     scrollViewRef.current?.scrollTo({y: 0, animated: true});
     flatListRef.current?.scrollToIndex({index: 0, animated: true});
+    setNewStoryModal(false);
 
     ToastAndroid.show('New story started!', ToastAndroid.SHORT);
   };
@@ -227,15 +233,28 @@ const CreateStory = () => {
 
     const net = await NetInfo.fetch();
 
-    if (!net.isConnected) {
+    // if (!net.isConnected) {
       const pendingQueue =
         JSON.parse(await AsyncStorage.getItem('pendingSubmissions')) || [];
-      pendingQueue.push(body);
+      // pendingQueue.push(body);
+
+      const index = pendingQueue.findIndex(
+        item => item.tempProcessId === body.tempProcessId
+      );
+
+      if (index !== -1) {
+        // If it exists, update the item
+        pendingQueue[index] = body;
+      } else {
+        // If it doesn't exist, push it as new
+        pendingQueue.push(body);
+      }
+
       await AsyncStorage.setItem(
         'pendingSubmissions',
         JSON.stringify(pendingQueue),
       );
-      console.log('pendingQueue',pendingQueue)
+      console.log('pendingQueue', pendingQueue);
       ToastAndroid.show(
         'Saved locally. Will sync when online.',
         ToastAndroid.SHORT,
@@ -248,7 +267,7 @@ const CreateStory = () => {
         handleNewStory();
       }
       return;
-    }
+    // }
 
     try {
       const response = await postStoryApi(body, CreateStoryApi(false));
@@ -261,6 +280,7 @@ const CreateStory = () => {
         ) {
           handleNewStory();
         }
+        setIdResponse(response)
       }
 
       console.log('POST Response:', response);
@@ -297,8 +317,8 @@ const CreateStory = () => {
     return () => clearInterval(interval); // cleanup on unmount
   }, [isDirty, formValues]);
 
-
-  
+  const offlineData = AsyncStorage.getItem('pendingSubmissions');
+  console.log('offlineData', offlineData);
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(async state => {
@@ -315,21 +335,21 @@ const CreateStory = () => {
           );
           console.log('📡 Online detected - syncing pending submissions...');
 
-          for (const form of queue) {
-            
-            console.log('form234567898765432',form)
-            try {
-              await postStoryApi(form, CreateStoryApi(false));
-            } catch (err) {
-              console.error('❌ Failed syncing a form:', err);
-            }
-          }
+          // for (const form of queue) {
 
-          await AsyncStorage.removeItem('pendingSubmissions');
-          ToastAndroid.show(
-            'Offline drafts synced successfully!',
-            ToastAndroid.SHORT,
-          );
+          //   console.log('form234567898765432',form)
+          //   try {
+          //     await postStoryApi(form, CreateStoryApi(false));
+          //   } catch (err) {
+          //     console.error('❌ Failed syncing a form:', err);
+          //   }
+          // }
+
+          // await AsyncStorage.removeItem('pendingSubmissions');
+          // ToastAndroid.show(
+          //   'Offline drafts synced successfully!',
+          //   ToastAndroid.SHORT,
+          // );
         }
       }
     });
@@ -461,11 +481,12 @@ const CreateStory = () => {
               alignItems: 'center',
             }}>
             <Text style={[FontStyle.headingLarge, styles.topBarTitle]}>
-              Create Story
+              Create Story{idresponse?.storyId&& <Text style={[FontStyle.labelLarge,{color:Apptheme.color.background}]}> - {idresponse?.storyId}</Text>}
               {/* {netStatus ? 'online' : 'offline'} */}
             </Text>
             <TouchableOpacity
-              onPress={handleNewStory}
+              // onPress={handleNewStory}
+              onPress={() => setNewStoryModal(true)}
               style={{
                 paddingVertical: 5,
                 paddingHorizontal: 10,
@@ -482,9 +503,8 @@ const CreateStory = () => {
                 + NEW
               </Text>
             </TouchableOpacity>
-
           </View>
-         
+
           <Gap m9 />
           <Gap m3 />
         </View>
@@ -548,63 +568,72 @@ const CreateStory = () => {
                     />
                     <Text style={FontStyle.labelLarge}>Save</Text>
                   </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={() => handleSubmit('SUBMITTED')}
-                    style={styles.actionButton}>
-                    <VectorIcon
-                      material-community-icon
-                      name="send"
-                      style={styles.icon}
-                      size={16}
-                    />
-                    <Text style={FontStyle.labelLarge}>Submit for review</Text>
-                  </TouchableOpacity>
-                </View>
-                {userData?.can_publish_story ? (
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-                      gap: 10,
-                    }}>
+                  {netStatus && (
                     <TouchableOpacity
-                      onPress={() => setModalVisible(true)}
+                      // onPress={() => handleSubmit('SUBMITTED')}
+                      onPress={() => {setPublishStatus('Submit');setNewsModal(true)}}
                       style={styles.actionButton}>
                       <VectorIcon
                         material-community-icon
-                        name="calendar-month"
+                        name="send"
                         style={styles.icon}
                         size={16}
                       />
                       <Text style={FontStyle.labelLarge}>
-                        Schedule for later
+                        Submit for review
                       </Text>
                     </TouchableOpacity>
+                  )}
+                </View>
+                {netStatus && (
+                  <>
+                    {userData?.can_publish_story ? (
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          gap: 10,
+                        }}>
+                        <TouchableOpacity
+                          onPress={() => setModalVisible(true)}
+                          style={styles.actionButton}>
+                          <VectorIcon
+                            material-community-icon
+                            name="calendar-month"
+                            style={styles.icon}
+                            size={16}
+                          />
+                          <Text style={FontStyle.labelLarge}>
+                            Schedule for later
+                          </Text>
+                        </TouchableOpacity>
 
-                    <TouchableOpacity
-                      onPress={() => handleSubmit('APPROVED')}
-                      style={[
-                        styles.actionButton,
-                        {backgroundColor: Apptheme.color.primary},
-                      ]}>
-                      <VectorIcon
-                        material-community-icon
-                        name="plus"
-                        style={styles.icon}
-                        size={20}
-                        color="white"
-                      />
-                      <Text
-                        style={[
-                          FontStyle.labelLarge,
-                          {color: Apptheme.color.background},
-                        ]}>
-                        Publish now
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                ) : null}
+                        <TouchableOpacity
+                          onPress={() => {setPublishStatus('Publish');setNewsModal(true)}}
+                          // onPress={() => handleSubmit('APPROVED')}
+                          style={[
+                            styles.actionButton,
+                            {backgroundColor: Apptheme.color.primary},
+                          ]}>
+                          <VectorIcon
+                            material-community-icon
+                            name="plus"
+                            style={styles.icon}
+                            size={20}
+                            color="white"
+                          />
+                          <Text
+                            style={[
+                              FontStyle.labelLarge,
+                              {color: Apptheme.color.background},
+                            ]}>
+                            Publish now
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    ) : null}
+                  </>
+                )}
               </View>
               <ScheduleModal
                 isVisible={modalVisible}
@@ -622,6 +651,79 @@ const CreateStory = () => {
           </View>
         )}
       </View>
+
+      <Modal
+        transparent={true}
+        visible={newStoryModal}
+        onRequestClose={() => setNewStoryModal(false)}
+        animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>New Story</Text>
+            <Text style={styles.modalText}>
+              Exit current story & create new?
+            </Text>
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={() => setNewStoryModal(false)}
+                // disabled={clearCacheLoading}
+              >
+                <Text style={styles.buttonText}>No</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  styles.confirmButton,
+                  // clearCacheLoading && {opacity: 0.7},
+                ]}
+                onPress={() => handleNewStory()}
+                // disabled={clearCacheLoading}
+              >
+                <Text style={styles.buttonText}>Yes</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        transparent={true}
+        visible={newsModal}
+        onRequestClose={() => setNewsModal(false)}
+        animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Are you sure</Text>
+            <Text style={styles.modalText}>
+            You want to {publishStatus} this story?
+            </Text>
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={() => setNewsModal(false)}
+                // disabled={clearCacheLoading}
+              >
+                <Text style={styles.buttonText}>No</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  styles.confirmButton,
+                  // clearCacheLoading && {opacity: 0.7},
+                ]}
+                onPress={() => handleSubmit(publishStatus == 'Publish'?'APPROVED':publishStatus=='Submit'? 'SUBMITTED':'')}
+                // disabled={clearCacheLoading}
+              >
+                <Text style={styles.buttonText}>Yes</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 };
@@ -693,5 +795,51 @@ const styles = StyleSheet.create({
   },
   icon: {
     marginRight: 5,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: '80%',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: Apptheme.color.primary,
+  },
+  modalText: {
+    fontSize: 16,
+    marginBottom: 20,
+    color: Apptheme.color.black,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  button: {
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    marginLeft: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 60,
+  },
+  cancelButton: {
+    backgroundColor: Apptheme.color.boxOutline,
+  },
+  confirmButton: {
+    backgroundColor: Apptheme.color.primary,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
 });

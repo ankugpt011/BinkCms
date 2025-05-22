@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 import { Tabs } from 'react-native-collapsible-tab-view';
 import NewsCardShimmer from '../../../components/atoms/NewsCardShimmer';
 import { formatDateTime } from '../../../components/utils';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const PAGE_SIZE = 10;
 
@@ -18,8 +19,10 @@ const DraftStory = ({ grid = false ,FilterOption,fromDate,toDate,category,search
   const [storyData, setStoryData] = useState([]);
   const [startIndex, setStartIndex] = useState(0);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [loadingPending,setLoadingPending]=useState()
   const [hasMore, setHasMore] = useState(true);
   const { refreshCount } = useSelector(state => state.storyUpdate);
+  const [pendingData, setPendingData] = useState([]);
 
   const formattedFromDate = fromDate ? formatDateTime(fromDate) : '';
   const formattedToDate = toDate ? formatDateTime(toDate) : '';
@@ -33,6 +36,29 @@ const DraftStory = ({ grid = false ,FilterOption,fromDate,toDate,category,search
     url: '',
     manual: true,
   });
+
+
+  const fetchPendingSubmissions = useCallback(async () => {
+    try {
+      setLoadingPending(true);
+      const pending = await AsyncStorage.getItem('pendingSubmissions');
+      const parsedPending = JSON.parse(pending) || [];
+      setPendingData(parsedPending);
+
+      console.log('pendingpending',pending)
+      
+    } catch (error) {
+      console.error('Error fetching pending submissions:', error);
+    } finally {
+      setLoadingPending(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPendingSubmissions();
+  }, [fetchPendingSubmissions, refreshCount, refresh]);
+
+
 
   const fetchData = useCallback(async (start = 0) => {
     // if (!userData?.sessionId || loadingMore || !hasMore) return;
@@ -59,6 +85,15 @@ const DraftStory = ({ grid = false ,FilterOption,fromDate,toDate,category,search
     }
   }, [userData,fromDate,toDate,category,searched,tag,author,refreshCount,refresh]);
 
+
+
+
+  
+  
+
+
+
+
   const handleLoadMore = () => {
     if (!loadingMore && hasMore) {
       fetchData(startIndex);
@@ -78,6 +113,7 @@ const DraftStory = ({ grid = false ,FilterOption,fromDate,toDate,category,search
       title={item?.heading}
       grid={grid}
       type ={'Draft'}
+      item={item}
 
     />
   )};
@@ -88,7 +124,8 @@ const DraftStory = ({ grid = false ,FilterOption,fromDate,toDate,category,search
    
       <Tabs.FlatList
         key={grid ? 'grid' : 'list'}
-        data={storyData}
+        // data={storyData}
+        data={[...pendingData, ...storyData]}
         renderItem={({ item, index }) => <RenderView item={item} index={index} />}
         keyExtractor={(item, index) => item?.newsId?.toString() || index.toString()}
         numColumns={grid ? 2 : 1}

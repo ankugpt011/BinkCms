@@ -29,7 +29,7 @@ import YoutubePlayer from 'react-native-youtube-iframe';
 import {formatToIST} from '../atoms/formatToIST';
 // import Clipboard from '@react-native-clipboard/clipboard';
 
-const NewsCard = ({id, image, author, title, date, grid, type, url}) => {
+const NewsCard = ({id, image, author, title, date, grid, type, url,item}) => {
   console.log('datedatedatefvgbvfdcsx', date);
   const formattedDate = dayjs(date).format('MMM DD, YYYY hh:mm A');
   const navigation = useNavigation();
@@ -112,6 +112,7 @@ const NewsCard = ({id, image, author, title, date, grid, type, url}) => {
         endpoint,
         {method: 'GET'}, // Specify GET method here
       );
+      console.log('responseresponse',response)
       if (response) {
         console.log('Story deleted successfully');
 
@@ -181,10 +182,11 @@ const NewsCard = ({id, image, author, title, date, grid, type, url}) => {
             </View>
         )}
         <View style={[styles.overlay, {width: grid ? '95%' : '97%'}]}>
-          <Text style={styles.idText}>{id}</Text>
+          <Text style={styles.idText}>{id?id:'Offline'}</Text>
           <View style={styles.iconRow}>
             {type == 'Draft' ? (
               userData?.can_edit_story ? (
+                id?
                 <TouchableOpacity
                   onPress={() => {
                     type == 'Draft'
@@ -193,6 +195,21 @@ const NewsCard = ({id, image, author, title, date, grid, type, url}) => {
                           type: type,
                         })
                       : handleEditPress();
+                  }}
+                  style={styles.icon}>
+                  <VectorIcon
+                    name="square-edit-outline"
+                    size={14}
+                    color={Apptheme.color.black}
+                  />
+                </TouchableOpacity>:<TouchableOpacity
+                  onPress={() => {
+                    
+                       navigation.navigate(RouteName.NEW_DETAIL_PAGE, {
+                         data:item,
+                         state:'offline'
+                        })
+                      
                   }}
                   style={styles.icon}>
                   <VectorIcon

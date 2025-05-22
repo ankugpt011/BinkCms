@@ -70,15 +70,20 @@ const useApi = ({method = 'GET', url = '', manual = false, cmsUrl = false}) => {
         setResponse(res.data); // update state
         return res.data; // return directly
       } catch (err) {
-        const errMsg =
-          err?.response?.data || err?.message || 'Something went wrong';
-        console.log('API Error:', errMsg);
-        ToastAndroid.show(
-          errMsg,
-              ToastAndroid.SHORT,
-            );
-        setError(errMsg); // update error state
-        return null; // return null on error
+        console.log('API Error:', err);
+        const errorResponse = {
+          error: true,
+          errorMessage: err.response?.data?.errorMessage || err.message,
+          ...err.response?.data
+        };
+        
+        // ToastAndroid.show(
+        //   errorResponse.errorMessage || 'Something went wrong',
+        //   ToastAndroid.SHORT
+        // );
+        
+        setError(errorResponse);
+        return errorResponse; // Return error object consistently
       } finally {
         setLoading(false); // done
       }
@@ -103,3 +108,5 @@ const useApi = ({method = 'GET', url = '', manual = false, cmsUrl = false}) => {
 };
 
 export default useApi;
+
+

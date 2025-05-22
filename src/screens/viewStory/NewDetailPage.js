@@ -23,7 +23,7 @@ import RenderHtml from 'react-native-render-html';
 import RouteName from '../../navigation/RouteName';
 import WebView from 'react-native-webview';
 import YoutubePlayer from 'react-native-youtube-iframe';
-import { formatToIST } from '../../components/atoms/formatToIST';
+import {formatToIST} from '../../components/atoms/formatToIST';
 
 const NewDetailPage = () => {
   const navigation = useNavigation();
@@ -37,7 +37,7 @@ const NewDetailPage = () => {
   const {width} = useWindowDimensions();
   const route = useRoute();
   const [webViewVisible, setWebViewVisible] = useState(false);
-  console.log('routeghjhgcbj',route.params)
+  console.log('routeghjhgcbj', route.params);
 
   const handleEditPress = () => {
     console.log('fghjnkjhgfchvbjn');
@@ -70,7 +70,13 @@ const NewDetailPage = () => {
     } else {
       res = await callApi(
         null,
-        FetchStoryApi(0, 10, sessionId, route.params?.id,route?.params.type =='Private'?'PRIVATE':null),
+        FetchStoryApi(
+          0,
+          10,
+          sessionId,
+          route.params?.id,
+          route?.params.type == 'Private' ? 'PRIVATE' : null,
+        ),
       );
       setData(res?.news[0]);
     }
@@ -80,15 +86,19 @@ const NewDetailPage = () => {
   console.log('data?.category', data?.otherCategoryIds);
 
   useEffect(() => {
-    fetchData();
+    if (route.params?.id) {
+      fetchData();
+    } else {
+      setData(route?.params?.data);
+    }
   }, [userData, route.params?.id]);
 
   const RenderImage = ({item}) => {
     console.log('item', item);
-    
+
     // Handle the case where item might be an object with an 'item' property
     const mediaItem = item.item || item;
-    
+
     // If it's a YouTube video
     if (mediaItem?.startsWith?.('yt_')) {
       const youtubeId = extractYoutubeId(mediaItem);
@@ -103,15 +113,16 @@ const NewDetailPage = () => {
         </View>
       );
     }
-  
+
     // Find matching file in data.files array
     const matchingFile = data?.files?.find(file => file.mediaId == mediaItem);
-    
+
     // Get the URL - prioritize matchingFile.url, then fall back to mediaItem if it's a string
-    const imageUrl = matchingFile?.url || (typeof mediaItem === 'string' ? mediaItem : null);
-  
+    const imageUrl =
+      matchingFile?.url || (typeof mediaItem === 'string' ? mediaItem : null);
+
     if (!imageUrl) return null;
-  
+
     return (
       <Image
         style={{
@@ -145,8 +156,7 @@ const NewDetailPage = () => {
         </View>
       );
     }
-   
-  
+
     return (
       <Image
         style={{
@@ -190,7 +200,7 @@ const NewDetailPage = () => {
   const getCategoryName = categoryId => {
     if (!categoryId || !categoriesData) return null;
 
-    console.log('getCategoryName', categoryId,categoriesData);
+    console.log('getCategoryName', categoryId, categoriesData);
 
     const foundCategory = categoriesData.find(
       category => category.catId == categoryId,
@@ -262,7 +272,28 @@ const NewDetailPage = () => {
           News Details
         </Text>
 
-        {route?.params?.type === 'Draft' ? (
+        {!route?.params?.id ? (
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate(RouteName.BOTTOM_TAB, {
+                screen: RouteName.CREATE_STORY,
+                params: {
+                  data: data,
+                },
+              });
+            }}
+            style={{
+              paddingHorizontal: 6,
+              paddingVertical: 6,
+              backgroundColor: Apptheme.color.background,
+              borderRadius: 4,
+              flexDirection: 'row',
+            }}>
+            <VectorIcon material-icon name="edit" size={14} />
+            <Gap row m2 />
+            <Text style={FontStyle.titleSmall}>Edit News</Text>
+          </TouchableOpacity>
+        ) : route?.params?.type === 'Draft' ? (
           userData?.can_edit_story ? (
             <TouchableOpacity
               onPress={() => {
@@ -353,7 +384,7 @@ const NewDetailPage = () => {
           </Text>
           <Gap m1 />
           <Text style={FontStyle.labelLarge}>
-            {formatToIST(data?.date_news||data?.date_updated)}
+            {formatToIST(data?.date_news || data?.date_updated)}
           </Text>
           <Gap m3 />
           <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
@@ -373,7 +404,9 @@ const NewDetailPage = () => {
           </Text>
           <Gap m1 />
           <Text style={FontStyle.labelLarge}>
-            {getCategoryName(data?.category) ||getCategoryName(data?.maincategory) ||'No category found'}
+            {getCategoryName(data?.category) ||
+              getCategoryName(data?.maincategory) ||
+              'No category found'}
           </Text>
           <Gap m3 />
           <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
@@ -381,7 +414,8 @@ const NewDetailPage = () => {
           </Text>
           <Gap m1 />
           <Text style={FontStyle.labelLarge}>
-            {getOtherCategoryNames(data?.otherCategoryIds)||getOtherCategoryNames(data?.categories)}
+            {getOtherCategoryNames(data?.otherCategoryIds) ||
+              getOtherCategoryNames(data?.categories)}
           </Text>
           <Gap m3 />
           <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
@@ -460,24 +494,26 @@ const NewDetailPage = () => {
               )}
             />
           )}
-          {route?.params?.type === 'Draft' ? <>
-            <Gap m3 />
+          {route?.params?.type === 'Draft' ? (
+            <>
+              <Gap m3 />
 
-            <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
-            Featured Image
-            </Text>
-            <Gap m1 />
+              <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
+                Featured Image
+              </Text>
+              <Gap m1 />
 
-            <View style={{flexDirection: 'row', gap: 10}}>
-              <FlatList
-                data={data?.extraMediaId?.split(',')}
-                horizontal
-                renderItem={(item, index) => (
-                  <RenderImage item={item} index={index} />
-                )}
-              />
-            </View>
-          </>:null}
+              <View style={{flexDirection: 'row', gap: 10}}>
+                <FlatList
+                  data={data?.extraMediaId?.split(',')}
+                  horizontal
+                  renderItem={(item, index) => (
+                    <RenderImage item={item} index={index} />
+                  )}
+                />
+              </View>
+            </>
+          ) : null}
 
           <Gap m3 />
         </View>
@@ -582,7 +618,9 @@ const NewDetailPage = () => {
               Date Created
             </Text>
             <Text style={[FontStyle.labelLarge, {flex: 3}]}>
-              {formatToIST(data?.date_news||data?.date_created||data?.date_updated)}
+              {formatToIST(
+                data?.date_news || data?.date_created || data?.date_updated,
+              )}
             </Text>
           </View>
           <View
@@ -605,45 +643,46 @@ const NewDetailPage = () => {
         </View>
 
         <Gap m4 />
-        {route?.params?.type === 'Draft'?null:
-        <View
-          style={{
-            padding: Apptheme.spacing.marginHorizontal,
-            elevation: 2,
-            backgroundColor: Apptheme.color.background,
-            borderRadius: 6,
-          }}>
-          <Text
-            style={[
-              FontStyle.headingSmall,
-              {
-                color: Apptheme.color.primary,
-                borderBottomWidth: 1,
-                borderColor: Apptheme.color.primary,
-                paddingBottom: 8,
-              },
-            ]}>
-            News Change Log (After Publishing)
-          </Text>
-          <Gap m8 />
-          <View style={{marginBottom: 8}}>
-            <Text style={[FontStyle.labelLarge]}>Changed By</Text>
-            <Text style={FontStyle.label}>{data?.authorName}</Text>
-            <Text style={FontStyle.label}>at : {data?.date_news}</Text>
+        {route?.params?.type === 'Draft' || !route?.params?.id ? null : (
+          <View
+            style={{
+              padding: Apptheme.spacing.marginHorizontal,
+              elevation: 2,
+              backgroundColor: Apptheme.color.background,
+              borderRadius: 6,
+            }}>
+            <Text
+              style={[
+                FontStyle.headingSmall,
+                {
+                  color: Apptheme.color.primary,
+                  borderBottomWidth: 1,
+                  borderColor: Apptheme.color.primary,
+                  paddingBottom: 8,
+                },
+              ]}>
+              News Change Log (After Publishing)
+            </Text>
+            <Gap m8 />
+            <View style={{marginBottom: 8}}>
+              <Text style={[FontStyle.labelLarge]}>Changed By</Text>
+              <Text style={FontStyle.label}>{data?.authorName}</Text>
+              <Text style={FontStyle.label}>at : {data?.date_news}</Text>
+            </View>
+            <View style={{marginBottom: 8}}>
+              <Text style={[FontStyle.labelLarge]}>Items Changed</Text>
+              <Text style={FontStyle.label}>Credit Changed</Text>
+            </View>
+            <View style={{marginBottom: 8}}>
+              <Text style={[FontStyle.labelLarge]}>Changed From</Text>
+              <Text style={FontStyle.label}>-</Text>
+            </View>
+            <View style={{marginBottom: 8}}>
+              <Text style={[FontStyle.labelLarge]}>Changed To</Text>
+              <Text style={FontStyle.label}>By: archana@blinkcms.ai</Text>
+            </View>
           </View>
-          <View style={{marginBottom: 8}}>
-            <Text style={[FontStyle.labelLarge]}>Items Changed</Text>
-            <Text style={FontStyle.label}>Credit Changed</Text>
-          </View>
-          <View style={{marginBottom: 8}}>
-            <Text style={[FontStyle.labelLarge]}>Changed From</Text>
-            <Text style={FontStyle.label}>-</Text>
-          </View>
-          <View style={{marginBottom: 8}}>
-            <Text style={[FontStyle.labelLarge]}>Changed To</Text>
-            <Text style={FontStyle.label}>By: archana@blinkcms.ai</Text>
-          </View>
-        </View>}
+        )}
         <Gap m4 />
 
         <Gap ml />
