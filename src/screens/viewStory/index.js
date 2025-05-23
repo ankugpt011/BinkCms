@@ -8,7 +8,11 @@ import {
   TouchableOpacity,
   FlatList,
 } from 'react-native';
-import {MaterialTabBar, MaterialTabItem, Tabs} from 'react-native-collapsible-tab-view';
+import {
+  MaterialTabBar,
+  MaterialTabItem,
+  Tabs,
+} from 'react-native-collapsible-tab-view';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Apptheme from '../../assets/theme/Apptheme';
 import Scheduled from './components/Scheduled';
@@ -18,6 +22,7 @@ import FontStyle from '../../assets/theme/FontStyle';
 import Gap from '../../components/atoms/Gap';
 import VectorIcon from '../../assets/vectorIcons';
 import DatePicker from 'react-native-date-picker';
+import NetInfo from '@react-native-community/netinfo';
 import {debounce} from 'lodash';
 
 import {
@@ -32,6 +37,8 @@ import SearchInput from '../../components/atoms/SearchInput';
 import DropDownPicker from 'react-native-dropdown-picker';
 import Private from './components/Private';
 import SearchableDropdown from '../../components/atoms/SearchableDropDown';
+import { SyncPendingSubmissions } from '../../components/molecules/SyncPendingSubmissions';
+import { useRoute } from '@react-navigation/native';
 
 const ViewStory = () => {
   // Initialize dates
@@ -48,7 +55,7 @@ const ViewStory = () => {
   const [toDate, setToDate] = useState(defaultToDate);
   const [openFrom, setOpenFrom] = useState(false);
   const [openTo, setOpenTo] = useState(false);
-  const[refresh,setRefresh]= useState(false)
+  const [refresh, setRefresh] = useState(false);
   const [FilterOption, setFilterOption] = useState(false);
   const [grid, setGrid] = useState(false);
   const [storyData, setStoryData] = useState([]);
@@ -62,12 +69,17 @@ const ViewStory = () => {
   const [authorResults, setAuthorResults] = useState([]);
   const [selectedAuthor, setSelectedAuthor] = useState(null);
   const [showAuthorDropdown, setShowAuthorDropdown] = useState(false);
+  const [isConnected, setIsConnected] = useState(true);
 
   // Filter selection states
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [categoryItems, setCategoryItems] = useState([]);
   const [selectedTag, setSelectedTag] = useState(null);
   const [tagItems, setTagItems] = useState([]);
+  const route = useRoute()
+  const initialTab = route?.params?.tab || 'Draft-Story';
+
+  console.log('initialTab',initialTab)
 
   // Applied filters
   const [appliedFilters, setAppliedFilters] = useState({
@@ -254,8 +266,15 @@ const ViewStory = () => {
           <View style={{flexDirection: 'row', gap: 5, alignItems: 'center'}}>
             {/* Grid/List toggle buttons */}
 
-            <TouchableOpacity onPress={()=>setRefresh(!refresh)} style={{marginRight:5}}>
-              <VectorIcon material-community-icon name='refresh' color='white' size={20}/>
+            <TouchableOpacity
+              onPress={() => setRefresh(!refresh)}
+              style={{marginRight: 5}}>
+              <VectorIcon
+                material-community-icon
+                name="refresh"
+                color="white"
+                size={20}
+              />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -368,45 +387,45 @@ const ViewStory = () => {
             <Gap m3 />
 
             {/* Time Range Dropdown */}
-            <View style={{zIndex:1000002}}>
-            <DropDownPicker
-              open={open}
-              value={value}
-              items={items}
-              setOpen={setOpen}
-              setValue={setValue}
-              setItems={setItems}
-              placeholder="Select Time Range"
-              style={styles.dropdownPicker}
-              textStyle={styles.dropdownText}
-              dropDownContainerStyle={styles.dropdownContainer}
-              listItemLabelStyle={styles.dropdownItem}
-              selectedItemLabelStyle={styles.dropdownSelectedItem}
-              ArrowDownIconComponent={() => (
-                <VectorIcon
-                  material-icon
-                  name="keyboard-arrow-down"
-                  color="#ffffff"
-                  size={18}
-                />
-              )}
-              ArrowUpIconComponent={() => (
-                <VectorIcon
-                  material-icon
-                  name="keyboard-arrow-up"
-                  color="#ffffff"
-                  size={18}
-                />
-              )}
-              TickIconComponent={() => (
-                <VectorIcon
-                  material-icon
-                  name="check"
-                  color={Apptheme.color.primary}
-                  size={18}
-                />
-              )}
-            />
+            <View style={{zIndex: 1000002}}>
+              <DropDownPicker
+                open={open}
+                value={value}
+                items={items}
+                setOpen={setOpen}
+                setValue={setValue}
+                setItems={setItems}
+                placeholder="Select Time Range"
+                style={styles.dropdownPicker}
+                textStyle={styles.dropdownText}
+                dropDownContainerStyle={styles.dropdownContainer}
+                listItemLabelStyle={styles.dropdownItem}
+                selectedItemLabelStyle={styles.dropdownSelectedItem}
+                ArrowDownIconComponent={() => (
+                  <VectorIcon
+                    material-icon
+                    name="keyboard-arrow-down"
+                    color="#ffffff"
+                    size={18}
+                  />
+                )}
+                ArrowUpIconComponent={() => (
+                  <VectorIcon
+                    material-icon
+                    name="keyboard-arrow-up"
+                    color="#ffffff"
+                    size={18}
+                  />
+                )}
+                TickIconComponent={() => (
+                  <VectorIcon
+                    material-icon
+                    name="check"
+                    color={Apptheme.color.primary}
+                    size={18}
+                  />
+                )}
+              />
             </View>
 
             <Gap m8 />
@@ -533,74 +552,135 @@ const ViewStory = () => {
   const tabBar = props => (
     <MaterialTabBar
       {...props}
-      indicatorStyle={{ backgroundColor: Apptheme.color.primary }}
-      style={{ backgroundColor: 'white',paddingHorizontal:0 }}
-      labelStyle={{fontSize:12,fontWeight:'500',width:80,textAlign:'center'}}
+      indicatorStyle={{backgroundColor: Apptheme.color.primary}}
+      style={{backgroundColor: 'white', paddingHorizontal: 0}}
+      labelStyle={{
+        fontSize: 12,
+        fontWeight: '500',
+        width: 80,
+        textAlign: 'center',
+      }}
     />
   );
 
+  const {callApi: postStoryApi} = useApi({
+    method: 'POST',
+    url: '',
+    manual: true,
+    cmsUrl: true,
+  });
+
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected);
+      if (state.isConnected) {
+        SyncPendingSubmissions(postStoryApi);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  // const [initialTabIndex] = useState(tabIndexMap[initialTab] ?? 0);
+  const getInitialTabName = () => {
+    switch (initialTab) {
+      case 'APPROVED':
+        return 'Published';
+      case 'SCHEDULED':
+        return 'SCHEDULED';
+      case 'DRAFT':
+        return 'Draft-Story';
+      
+      default:
+        return 'Draft-Story';
+    }
+  };
+
   return (
-    <Tabs.Container
-      renderHeader={Header}
-      revealHeaderOnScroll
-      renderTabBar={tabBar}
-      >
-      <Tabs.Tab name="Draft-Story">
-        <DraftStory
-          grid={grid}
-          fromDate={appliedFilters.fromDate}
-          toDate={appliedFilters.toDate}
-          FilterOption={FilterOption}
-          category={appliedFilters.category}
-          searched={appliedFilters.search}
-          tag={appliedFilters.tag}
-          author={appliedFilters.author}
-          refresh={refresh}
-        />
-      </Tabs.Tab>
+    <>
+      {!isConnected && (
+        <View
+          style={{
+            backgroundColor: Apptheme.color.containerBackground,
+            paddingVertical: 6,
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'row',
+          }}>
+          <VectorIcon
+            name="wifi-off"
+            material-icon
+            color={Apptheme.color.red}
+            size={18}
+          />
+          <Gap row m3 />
+          <Text style={FontStyle.labelMedium}>You are offline</Text>
+        </View>
+      )}
+      <Tabs.Container
+        renderHeader={Header}
+        revealHeaderOnScroll
+        initialTabName={getInitialTabName()}
+        renderTabBar={tabBar}>
+        <Tabs.Tab name="Draft-Story">
+          <DraftStory
+            grid={grid}
+            fromDate={appliedFilters.fromDate}
+            toDate={appliedFilters.toDate}
+            FilterOption={FilterOption}
+            category={appliedFilters.category}
+            searched={appliedFilters.search}
+            tag={appliedFilters.tag}
+            author={appliedFilters.author}
+            refresh={refresh}
+          />
+        </Tabs.Tab>
 
-      <Tabs.Tab name="SCHEDULED">
-        <Scheduled
-          grid={grid}
-          fromDate={appliedFilters.fromDate}
-          toDate={appliedFilters.toDate}
-          FilterOption={FilterOption}
-          category={appliedFilters.category}
-          searched={appliedFilters.search}
-          tag={appliedFilters.tag}
-          author={appliedFilters.author}
-          refresh={refresh}
-        />
-      </Tabs.Tab>
+        <Tabs.Tab name="SCHEDULED">
+          <Scheduled
+            grid={grid}
+            fromDate={appliedFilters.fromDate}
+            toDate={appliedFilters.toDate}
+            FilterOption={FilterOption}
+            category={appliedFilters.category}
+            searched={appliedFilters.search}
+            tag={appliedFilters.tag}
+            author={appliedFilters.author}
+            refresh={refresh}
+          />
+        </Tabs.Tab>
 
-      <Tabs.Tab name="Published">
-        <Published
-          grid={grid}
-          fromDate={appliedFilters.fromDate}
-          toDate={appliedFilters.toDate}
-          FilterOption={FilterOption}
-          category={appliedFilters.category}
-          searched={appliedFilters.search}
-          tag={appliedFilters.tag}
-          author={appliedFilters.author}
-          refresh={refresh}
-        />
-      </Tabs.Tab>
+        <Tabs.Tab name="Published">
+          <Published
+            grid={grid}
+            fromDate={appliedFilters.fromDate}
+            toDate={appliedFilters.toDate}
+            FilterOption={FilterOption}
+            category={appliedFilters.category}
+            searched={appliedFilters.search}
+            tag={appliedFilters.tag}
+            author={appliedFilters.author}
+            refresh={refresh}
+          />
+        </Tabs.Tab>
 
-      <Tabs.Tab name="Private">
-        <Private
-          grid={grid}
-          fromDate={appliedFilters.fromDate}
-          toDate={appliedFilters.toDate}
-          FilterOption={FilterOption}
-          category={appliedFilters.category}
-          searched={appliedFilters.search}
-          tag={appliedFilters.tag}
-          author={appliedFilters.author}
-          refresh={refresh}
-        />
-      </Tabs.Tab>
-    </Tabs.Container>
+        <Tabs.Tab name="Private">
+          <Private
+            grid={grid}
+            fromDate={appliedFilters.fromDate}
+            toDate={appliedFilters.toDate}
+            FilterOption={FilterOption}
+            category={appliedFilters.category}
+            searched={appliedFilters.search}
+            tag={appliedFilters.tag}
+            author={appliedFilters.author}
+            refresh={refresh}
+          />
+        </Tabs.Tab>
+      </Tabs.Container>
+    </>
   );
 };
 
@@ -645,12 +725,11 @@ const styles = StyleSheet.create({
   dropdownText: {
     fontSize: 14,
     color: Apptheme.color.background,
-    
   },
   dropdownContainer: {
     backgroundColor: 'white',
     borderColor: 'transparent',
-    elevation:3
+    elevation: 3,
   },
   dropdownItem: {
     color: Apptheme.color.black,

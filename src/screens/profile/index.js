@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
   ToastAndroid,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import Apptheme from '../../assets/theme/Apptheme';
 import FontStyle from '../../assets/theme/FontStyle';
 import VectorIcon from '../../assets/vectorIcons';
@@ -20,8 +20,11 @@ import {useNavigation} from '@react-navigation/native';
 import RouteName from '../../navigation/RouteName';
 import {useDispatch, useSelector} from 'react-redux';
 import {clearLoginData} from '../../redux/reducer/LoginSlice';
+import NetInfo from '@react-native-community/netinfo';
 import useApi from '../../apiServices/UseApi';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import Gap from '../../components/atoms/Gap';
+import { SyncPendingSubmissions } from '../../components/molecules/SyncPendingSubmissions';
 
 const Profile = () => {
   const navigation = useNavigation();
@@ -29,6 +32,7 @@ const Profile = () => {
   const [showClearCacheModal, setShowClearCacheModal] = useState(false);
   const [logoutModal, setLogoutModal] = useState(false);
   const userData = useSelector(state => state.login.userData);
+  const [isConnected, setIsConnected] = useState(true);
   const url = 'https://support.blinkcms.ai/#login';
 
   // Initialize the useApi hook for clearing cache
@@ -164,8 +168,48 @@ const Profile = () => {
     },
   ];
 
+
+  const {callApi: postStoryApi} = useApi({
+    method: 'POST',
+    url: '',
+    manual: true,
+    cmsUrl: true,
+  });
+
+
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected);
+      if(state.isConnected){
+            SyncPendingSubmissions(postStoryApi);}
+    });
+  
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
   return (
     <>
+    {!isConnected && (
+          <View
+            style={{
+              backgroundColor: Apptheme.color.containerBackground,
+              paddingVertical: 6,
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'row',
+            }}>
+            <VectorIcon
+              name="wifi-off"
+              material-icon
+              color={Apptheme.color.red}
+              size={18}
+            />
+            <Gap row m3 />
+            <Text style={FontStyle.labelMedium}>You are offline</Text>
+          </View>
+        )}
       <StatusBar backgroundColor={Apptheme.color.primary} />
       <View
         style={{

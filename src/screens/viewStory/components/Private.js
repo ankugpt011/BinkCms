@@ -91,9 +91,11 @@ const Private = ({grid = false ,FilterOption,fromDate,toDate,category,searched =
         contentContainerStyle={{paddingBottom:40,paddingTop:FilterOption ? 480: 100,paddingHorizontal:10}}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.4}
-        ListEmptyComponent={<View style={{flex:1,alignItems:'center',justifyContent:'center'}}>
-          <Text style={FontStyle.labelLarge}>No Published News</Text>
-        </View>}
+        ListEmptyComponent={
+          loadingMore?null:
+          <View style={{flex:1,alignItems:'center',justifyContent:'center'}}>
+            <Text style={FontStyle.labelLarge}>No Private News</Text>
+          </View>}
         ListFooterComponent={
           loadingMore ? (
             <View style={{ flexDirection: grid ? 'row' : 'column', justifyContent: 'space-between', flexWrap: 'wrap' }}>

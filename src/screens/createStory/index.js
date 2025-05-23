@@ -27,12 +27,15 @@ import {
 } from '../../apiServices/apiHelper';
 import VectorIcon from '../../assets/vectorIcons';
 
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import ScheduleModal from '../../components/atoms/ScheduleModal';
 import {formatDateTime} from '../../components/utils';
 import {useNavigation, useRoute} from '@react-navigation/native';
+import {SyncPendingSubmissions} from '../../components/molecules/SyncPendingSubmissions';
+import RouteName from '../../navigation/RouteName';
+import { triggerStoryRefresh } from '../../redux/reducer/StoryUpdateSlice';
 
 const CreateStory = () => {
   const scrollViewRef = useRef(null);
@@ -48,9 +51,9 @@ const CreateStory = () => {
   const [invalidFields, setInvalidFields] = useState([]);
   const [newStoryModal, setNewStoryModal] = useState(false);
   const [newsModal, setNewsModal] = useState(false);
-  const [publishStatus,setPublishStatus]=useState('')
-  const [idresponse,setIdResponse]=useState({})
-
+  const [publishStatus, setPublishStatus] = useState('');
+  const [idresponse, setIdResponse] = useState({});
+  const dispatch = useDispatch()
 
   const route = useRoute();
   const [initialized, setInitialized] = useState(false);
@@ -58,10 +61,11 @@ const CreateStory = () => {
   const editValue = route.params?.data;
   console.log('editValue1', editValue);
 
-  const generateId = (existingId) => {
-    return existingId || (
+  const generateId = existingId => {
+    return (
+      existingId ||
       Math.random().toString(36).substring(2, 15) +
-      Math.random().toString(36).substring(2, 15)
+        Math.random().toString(36).substring(2, 15)
     );
   };
   const [formValues, setFormValues] = useState({
@@ -195,7 +199,7 @@ const CreateStory = () => {
     }
 
     // Reset UI states
-    setIdResponse({})
+    setIdResponse({});
     setActiveIndex(0);
     setInvalidFields([]);
     setIsDirty(false);
@@ -233,7 +237,7 @@ const CreateStory = () => {
 
     const net = await NetInfo.fetch();
 
-    console.log('2345432body',body)
+    console.log('2345432body', body);
 
     if (!net.isConnected) {
       const pendingQueue =
@@ -241,7 +245,7 @@ const CreateStory = () => {
       // pendingQueue.push(body);
 
       const index = pendingQueue.findIndex(
-        item => item.tempProcessId === body.tempProcessId
+        item => item.tempProcessId === body.tempProcessId,
       );
 
       if (index !== -1) {
@@ -274,15 +278,33 @@ const CreateStory = () => {
     try {
       const response = await postStoryApi(body, CreateStoryApi(false));
       if (response) {
+        dispatch(
+                  triggerStoryRefresh({
+                    id:1,
+                    action: 'refres',
+                  }),
+                );
         ToastAndroid.show(`story saved in ${newState}`, ToastAndroid.SHORT);
+        navigation.navigate(RouteName.BOTTOM_TAB, {
+          screen: RouteName.VIEW_STORY,
+          params: {
+            tab:newState
+            // data: data,
+          },
+        });
         if (
           newState == 'APPROVED' ||
           newState == 'SCHEDULED' ||
           newState == 'SUBMITTED'
         ) {
           handleNewStory();
+          setNewsModal(false);
+        } else {
+          setIdResponse(response);
         }
-        setIdResponse(response)
+        
+        scrollViewRef.current?.scrollTo({y: 0, animated: true});
+        flatListRef.current?.scrollToIndex({index: 0, animated: true});
       }
 
       console.log('POST Response:', response);
@@ -327,6 +349,9 @@ const CreateStory = () => {
       if (state.isConnected && userData?.sessionId) {
         console.log('state.isConnected', state.isConnected);
         setNetStatus(state.isConnected);
+        if (state.isConnected) {
+          SyncPendingSubmissions(postStoryApi);
+        }
         const queue =
           JSON.parse(await AsyncStorage.getItem('pendingSubmissions')) || [];
 
@@ -338,8 +363,7 @@ const CreateStory = () => {
           console.log('📡 Online detected - syncing pending submissions...');
 
           for (const form of queue) {
-
-            console.log('form234567898765432',form)
+            console.log('form234567898765432', form);
             try {
               await postStoryApi(form, CreateStoryApi(false));
             } catch (err) {
@@ -475,6 +499,25 @@ const CreateStory = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{flex: 1}}>
       <View style={styles.container}>
+        {!netStatus && (
+          <View
+            style={{
+              backgroundColor: Apptheme.color.containerBackground,
+              paddingVertical: 6,
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexDirection: 'row',
+            }}>
+            <VectorIcon
+              name="wifi-off"
+              material-icon
+              color={Apptheme.color.red}
+              size={18}
+            />
+            <Gap row m3 />
+            <Text style={FontStyle.labelMedium}>You are offline</Text>
+          </View>
+        )}
         <StatusBar backgroundColor={Apptheme.color.primary} />
         <View style={styles.topBar}>
           <View
@@ -484,7 +527,17 @@ const CreateStory = () => {
               alignItems: 'center',
             }}>
             <Text style={[FontStyle.headingLarge, styles.topBarTitle]}>
-              Create Story{idresponse?.storyId&& <Text style={[FontStyle.labelLarge,{color:Apptheme.color.background}]}> - {idresponse?.storyId}</Text>}
+              Create Story
+              {idresponse?.storyId && (
+                <Text
+                  style={[
+                    FontStyle.labelLarge,
+                    {color: Apptheme.color.background},
+                  ]}>
+                  {' '}
+                  - {idresponse?.storyId}
+                </Text>
+              )}
               {/* {netStatus ? 'online' : 'offline'} */}
             </Text>
             <TouchableOpacity
@@ -514,7 +567,7 @@ const CreateStory = () => {
 
         {data ? (
           <>
-            <View style={styles.fixedHeader}>
+            <View style={[styles.fixedHeader, {top: !netStatus ? 75 : 55}]}>
               <FlatList
                 ref={flatListRef}
                 data={headerData}
@@ -574,7 +627,10 @@ const CreateStory = () => {
                   {netStatus && (
                     <TouchableOpacity
                       // onPress={() => handleSubmit('SUBMITTED')}
-                      onPress={() => {setPublishStatus('Submit');setNewsModal(true)}}
+                      onPress={() => {
+                        setPublishStatus('Submit');
+                        setNewsModal(true);
+                      }}
                       style={styles.actionButton}>
                       <VectorIcon
                         material-community-icon
@@ -612,7 +668,10 @@ const CreateStory = () => {
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                          onPress={() => {setPublishStatus('Publish');setNewsModal(true)}}
+                          onPress={() => {
+                            setPublishStatus('Publish');
+                            setNewsModal(true);
+                          }}
                           // onPress={() => handleSubmit('APPROVED')}
                           style={[
                             styles.actionButton,
@@ -700,7 +759,7 @@ const CreateStory = () => {
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Are you sure</Text>
             <Text style={styles.modalText}>
-            You want to {publishStatus} this story?
+              You want to {publishStatus} this story?
             </Text>
 
             <View style={styles.buttonContainer}>
@@ -718,7 +777,15 @@ const CreateStory = () => {
                   styles.confirmButton,
                   // clearCacheLoading && {opacity: 0.7},
                 ]}
-                onPress={() => handleSubmit(publishStatus == 'Publish'?'APPROVED':publishStatus=='Submit'? 'SUBMITTED':'')}
+                onPress={() =>
+                  handleSubmit(
+                    publishStatus == 'Publish'
+                      ? 'APPROVED'
+                      : publishStatus == 'Submit'
+                      ? 'SUBMITTED'
+                      : '',
+                  )
+                }
                 // disabled={clearCacheLoading}
               >
                 <Text style={styles.buttonText}>Yes</Text>

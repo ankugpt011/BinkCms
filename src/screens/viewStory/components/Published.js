@@ -86,9 +86,11 @@ const Published = ({ grid = false ,FilterOption,fromDate,toDate,category,searche
         renderItem={({ item, index }) => <RenderView item={item} index={index} />}
         keyExtractor={(item, index) => item?.newsId?.toString() || index.toString()}
         numColumns={grid ? 2 : 1}
-        ListEmptyComponent={<View style={{flex:1,alignItems:'center',justifyContent:'center'}}>
-          <Text style={FontStyle.labelLarge}>No Published News</Text>
-        </View>}
+        ListEmptyComponent={
+          loadingMore?null:
+          <View style={{flex:1,alignItems:'center',justifyContent:'center'}}>
+            <Text style={FontStyle.labelLarge}>No Published News</Text>
+          </View>}
         columnWrapperStyle={grid ? styles.rowWrapper : null}
         contentContainerStyle={{paddingBottom:40,paddingTop:FilterOption ? 480: 100,paddingHorizontal:10}}
         onEndReached={handleLoadMore}

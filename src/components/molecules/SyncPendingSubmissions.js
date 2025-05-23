@@ -14,7 +14,12 @@ export const SyncPendingSubmissions = async (postStoryApi) => {
 
     const queue =
       JSON.parse(await AsyncStorage.getItem('pendingSubmissions')) || [];
+      if (queue.length == 0) {
+        console.log('ℹ️ No pending submissions to sync');
+        return;
+      }
 
+      
     for (const form of queue) {
       await postStoryApi(form, CreateStoryApi(true));
     }
