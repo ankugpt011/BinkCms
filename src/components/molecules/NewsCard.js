@@ -27,14 +27,16 @@ import {triggerStoryRefresh} from '../../redux/reducer/StoryUpdateSlice';
 import WebView from 'react-native-webview';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import {formatToIST} from '../atoms/formatToIST';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // import Clipboard from '@react-native-clipboard/clipboard';
 
-const NewsCard = ({id, image, author, title, date, grid, type, url,item}) => {
+const NewsCard = ({id, image, author, title, date, grid, type, url, item}) => {
   console.log('datedatedatefvgbvfdcsx', date);
   const formattedDate = dayjs(date).format('MMM DD, YYYY hh:mm A');
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const [webViewVisible, setWebViewVisible] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
   const {apiKey, apiEndPoint, partnerData} = useSelector(state => state.login);
   console.log('typetypetypetype', apiEndPoint);
 
@@ -91,6 +93,7 @@ const NewsCard = ({id, image, author, title, date, grid, type, url,item}) => {
       Alert.alert('Error', error.message || 'Failed to update news status');
     }
   };
+
   const handleCopyUrl = () => {
     // const fullUrl = `${apiEndPoint}${url}`;
     // Clipboard.setString(fullUrl);
@@ -100,6 +103,7 @@ const NewsCard = ({id, image, author, title, date, grid, type, url,item}) => {
 
   const handleDelete = async () => {
     closeMenu();
+    setDeleteModal(false)
 
     try {
       const endpoint =
@@ -112,7 +116,7 @@ const NewsCard = ({id, image, author, title, date, grid, type, url,item}) => {
         endpoint,
         {method: 'GET'}, // Specify GET method here
       );
-      console.log('responseresponse',response)
+      console.log('responseresponse', response);
       if (response) {
         console.log('Story deleted successfully');
 
@@ -141,6 +145,41 @@ const NewsCard = ({id, image, author, title, date, grid, type, url,item}) => {
   };
 
   console.log('typedfgvbhjnkmmjnbhgv', type);
+
+  const deleteSubmissionByTempId = async tempProcessIdToDelete => {
+    console.log('hello1234565432');
+    try {
+      const pending = await AsyncStorage.getItem('pendingSubmissions');
+      const parsedPending = JSON.parse(pending) || [];
+
+      console.log('parsedPending', parsedPending);
+
+      // Filter out the item with the matching tempProcessId
+      const updatedPending = parsedPending.filter(
+        item => item.tempProcessId !== tempProcessIdToDelete,
+      );
+
+      console.log('updatedPending', updatedPending);
+
+      // Save updated list back to AsyncStorage
+      await AsyncStorage.setItem(
+        'pendingSubmissions',
+        JSON.stringify(updatedPending),
+      );
+      closeMenu();
+      setDeleteModal(false)
+      dispatch(
+        triggerStoryRefresh({
+          id,
+          action: 'DELETED',
+        }),
+      );
+      // Update your state if you're storing it in component state
+      // setPendingData(updatedPending);
+    } catch (error) {
+      console.error('Error deleting submission:', error);
+    }
+  };
 
   return (
     <View style={[styles.card, {width: grid ? '48.5%' : '100%'}]}>
@@ -174,50 +213,51 @@ const NewsCard = ({id, image, author, title, date, grid, type, url,item}) => {
               styles.image,
               {alignItems: 'center', justifyContent: 'center'},
             ]}>
-               <VectorIcon
-                    name="image-size-select-actual"
-                    size={20}
-                    color={Apptheme.color.black}
-                  />
-            </View>
+            <VectorIcon
+              name="image-size-select-actual"
+              size={20}
+              color={Apptheme.color.black}
+            />
+          </View>
         )}
         <View style={[styles.overlay, {width: grid ? '95%' : '97%'}]}>
-          <Text style={styles.idText}>{id?id:'Offline'}</Text>
+          <Text style={styles.idText}>{id ? id : 'Offline'}</Text>
           <View style={styles.iconRow}>
             {type == 'Draft' ? (
               userData?.can_edit_story ? (
-                id?
-                <TouchableOpacity
-                  onPress={() => {
-                    type == 'Draft'
-                      ? navigation.navigate(RouteName.NEW_DETAIL_PAGE, {
-                          id: id,
-                          type: type,
-                        })
-                      : handleEditPress();
-                  }}
-                  style={styles.icon}>
-                  <VectorIcon
-                    name="square-edit-outline"
-                    size={14}
-                    color={Apptheme.color.black}
-                  />
-                </TouchableOpacity>:<TouchableOpacity
-                  onPress={() => {
-                    
-                       navigation.navigate(RouteName.NEW_DETAIL_PAGE, {
-                         data:item,
-                         state:'offline'
-                        })
-                      
-                  }}
-                  style={styles.icon}>
-                  <VectorIcon
-                    name="square-edit-outline"
-                    size={14}
-                    color={Apptheme.color.black}
-                  />
-                </TouchableOpacity>
+                id ? (
+                  <TouchableOpacity
+                    onPress={() => {
+                      type == 'Draft'
+                        ? navigation.navigate(RouteName.NEW_DETAIL_PAGE, {
+                            id: id,
+                            type: type,
+                          })
+                        : handleEditPress();
+                    }}
+                    style={styles.icon}>
+                    <VectorIcon
+                      name="square-edit-outline"
+                      size={14}
+                      color={Apptheme.color.black}
+                    />
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => {
+                      navigation.navigate(RouteName.NEW_DETAIL_PAGE, {
+                        data: item,
+                        state: 'offline',
+                      });
+                    }}
+                    style={styles.icon}>
+                    <VectorIcon
+                      name="square-edit-outline"
+                      size={14}
+                      color={Apptheme.color.black}
+                    />
+                  </TouchableOpacity>
+                )
               ) : null
             ) : userData?.can_edit_news ? (
               <TouchableOpacity
@@ -247,9 +287,19 @@ const NewsCard = ({id, image, author, title, date, grid, type, url,item}) => {
         </View>
       </View>
       <TouchableOpacity
-        onPress={() =>
-          navigation.navigate(RouteName.NEW_DETAIL_PAGE, {id: id, type: type})
-        }>
+        onPress={() => {
+          if (id) {
+            navigation.navigate(RouteName.NEW_DETAIL_PAGE, {
+              id,
+              type,
+            });
+          } else {
+            navigation.navigate(RouteName.NEW_DETAIL_PAGE, {
+              data: item,
+              state: 'offline',
+            });
+          }
+        }}>
         <Gap m3 />
         <Text style={[FontStyle.labelMedium, styles.author]}>{author}</Text>
         <Gap m2 />
@@ -280,9 +330,18 @@ const NewsCard = ({id, image, author, title, date, grid, type, url,item}) => {
           <View style={styles.menuContainer}>
             <TouchableOpacity
               style={styles.menuItem}
-              onPress={() => {
-                handleDelete();
-              }}>
+              onPress={() => {setDeleteModal(true);closeMenu()}}
+              // onPress={() => {
+              //   console.log('TouchableOpacity2345678')
+              //   if (id) {
+              //     console.log('idididwedfvdcsw')
+              //     handleDelete();
+              //   } else {
+              //     console.log('elseelese')
+              //     deleteSubmissionByTempId(item?.tempProcessId);
+              //   }
+              // }}
+            >
               <VectorIcon
                 name="delete"
                 size={18}
@@ -352,6 +411,52 @@ const NewsCard = ({id, image, author, title, date, grid, type, url,item}) => {
             //  console.log('onNavigationStateChange====>', navState);
             //   }}
           />
+        </View>
+      </Modal>
+      <Modal
+        transparent={true}
+        visible={deleteModal}
+        onRequestClose={() => setDeleteModal(false)}
+        animationType="fade">
+        <View style={styles.deleteModalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Delete</Text>
+            <Text style={styles.modalText}>
+              Are you sure you want to Delete this buzz?
+            </Text>
+
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={() => setDeleteModal(false)}
+                // disabled={clearCacheLoading}
+              >
+                <Text style={styles.buttonText}>No</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  styles.confirmButton,
+                  // clearCacheLoading && {opacity: 0.7},
+                ]}
+                onPress={() => {
+                console.log('TouchableOpacity2345678')
+                if (id) {
+                  console.log('idididwedfvdcsw')
+                  handleDelete();
+                } else {
+                  console.log('elseelese')
+                  deleteSubmissionByTempId(item?.tempProcessId);
+                }
+              }}
+                // onPress={() => handleDelete()}
+                // disabled={clearCacheLoading}
+              >
+                <Text style={styles.buttonText}>Yes</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </Modal>
     </View>
@@ -438,7 +543,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 8,
     paddingVertical: 8,
-    width: 200,
+    paddingHorizontal: 8,
+    width: '100%',
     shadowColor: '#000',
     shadowOpacity: 0.2,
     shadowOffset: {width: 0, height: 2},
@@ -447,8 +553,10 @@ const styles = StyleSheet.create({
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 16,
     paddingHorizontal: 15,
+    borderBottomWidth: 1,
+    borderColor: '#f2f2f2',
   },
   menuText: {
     marginLeft: 10,
@@ -470,5 +578,57 @@ const styles = StyleSheet.create({
   },
   webView: {
     flex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+    // alignItems: 'center',
+  },
+  deleteModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: '80%',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: Apptheme.color.primary,
+  },
+  modalText: {
+    fontSize: 16,
+    marginBottom: 20,
+    color: Apptheme.color.black,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  button: {
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    marginLeft: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 60,
+  },
+  cancelButton: {
+    backgroundColor: Apptheme.color.boxOutline,
+  },
+  confirmButton: {
+    backgroundColor: Apptheme.color.primary,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
 });

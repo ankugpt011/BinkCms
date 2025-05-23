@@ -1,4 +1,4 @@
-import { FlatList, ActivityIndicator, StyleSheet, View } from 'react-native';
+import { FlatList, ActivityIndicator, StyleSheet, View, Text } from 'react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import Apptheme from '../../../assets/theme/Apptheme';
 import Gap from '../../../components/atoms/Gap';
@@ -9,6 +9,7 @@ import { useSelector } from 'react-redux';
 import { Tabs } from 'react-native-collapsible-tab-view';
 import NewsCardShimmer from '../../../components/atoms/NewsCardShimmer';
 import { formatDateTime } from '../../../components/utils';
+import FontStyle from '../../../assets/theme/FontStyle';
 
 const PAGE_SIZE = 10;
 
@@ -85,6 +86,9 @@ const Published = ({ grid = false ,FilterOption,fromDate,toDate,category,searche
         renderItem={({ item, index }) => <RenderView item={item} index={index} />}
         keyExtractor={(item, index) => item?.newsId?.toString() || index.toString()}
         numColumns={grid ? 2 : 1}
+        ListEmptyComponent={<View style={{flex:1,alignItems:'center',justifyContent:'center'}}>
+          <Text style={FontStyle.labelLarge}>No Published News</Text>
+        </View>}
         columnWrapperStyle={grid ? styles.rowWrapper : null}
         contentContainerStyle={{paddingBottom:40,paddingTop:FilterOption ? 480: 100,paddingHorizontal:10}}
         onEndReached={handleLoadMore}

@@ -222,14 +222,25 @@ const NewDetailPage = () => {
     }
   };
 
+  console.log('fgvhbjnkmjhgvfdata',data)
+
+  // const ids = (data?.uid || data?.newsId) ? categoryIds.split(',').map(id => parseInt(id.trim(), 10)) : categoryIds;
   const getOtherCategoryNames = categoryIds => {
+
+    console.log('categoryIds123456543',categoryIds)
     if (!categoryIds || !categoriesData) return 'No categories found';
 
-    const ids = categoryIds.split(',').map(id => parseInt(id.trim(), 10));
+
+    const ids = Array.isArray(categoryIds)
+    ? categoryIds.map(id => parseInt(id, 10))
+    : categoryIds.split(',').map(id => parseInt(id.trim(), 10));
+
+
+    console.log('idsidsidsidssdfbgnbfvdc',ids)
 
     const names = ids
       .map(id => {
-        const category = categoriesData.find(cat => cat.catId === id);
+        const category = categoriesData.find(cat => cat.catId == id);
         return category ? category.name : null;
       })
       .filter(Boolean);
@@ -244,7 +255,7 @@ const NewDetailPage = () => {
     return mediaId;
   };
 
-  console.log('datafghjklmnbvbnm', data);
+  console.log('datafghjklmnbvbnm', data,data?.categories);
 
   return (
     <View style={{flex: 1, backgroundColor: 'white'}}>
@@ -404,8 +415,7 @@ const NewDetailPage = () => {
           </Text>
           <Gap m1 />
           <Text style={FontStyle.labelLarge}>
-            {getCategoryName(data?.category) ||
-              getCategoryName(data?.maincategory) ||
+            {getCategoryName(data?.category||data?.maincategory) ||
               'No category found'}
           </Text>
           <Gap m3 />
@@ -414,8 +424,9 @@ const NewDetailPage = () => {
           </Text>
           <Gap m1 />
           <Text style={FontStyle.labelLarge}>
-            {getOtherCategoryNames(data?.otherCategoryIds) ||
-              getOtherCategoryNames(data?.categories)}
+            {/* {getOtherCategoryNames(data?.categories)||getOtherCategoryNames(data?.otherCategoryIds)
+              } */}
+              {getOtherCategoryNames(data?.categories||data?.otherCategoryIds)}
           </Text>
           <Gap m3 />
           <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>

@@ -1,5 +1,5 @@
 
-import { FlatList, ActivityIndicator, StyleSheet, View } from 'react-native';
+import { FlatList, ActivityIndicator, StyleSheet, View, Text } from 'react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import Apptheme from '../../../assets/theme/Apptheme';
 import Gap from '../../../components/atoms/Gap';
@@ -11,6 +11,7 @@ import { Tabs } from 'react-native-collapsible-tab-view';
 import NewsCardShimmer from '../../../components/atoms/NewsCardShimmer';
 import { formatDateTime } from '../../../components/utils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import FontStyle from '../../../assets/theme/FontStyle';
 
 const PAGE_SIZE = 10;
 
@@ -133,6 +134,11 @@ const DraftStory = ({ grid = false ,FilterOption,fromDate,toDate,category,search
         contentContainerStyle={{paddingBottom:40,paddingTop:FilterOption ? 480: 100,paddingHorizontal:10}}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.4}
+        ListEmptyComponent={
+        loadingMore?null:
+        <View style={{flex:1,alignItems:'center',justifyContent:'center'}}>
+          <Text style={FontStyle.labelLarge}>No Draft Stories</Text>
+        </View>}
         ListFooterComponent={
           loadingMore ? (
             <View style={{ flexDirection: grid ? 'row' : 'column', justifyContent: 'space-between', flexWrap: 'wrap' }}>

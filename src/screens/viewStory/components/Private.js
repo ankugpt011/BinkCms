@@ -1,4 +1,4 @@
-import { FlatList, ActivityIndicator, StyleSheet, View } from 'react-native';
+import { FlatList, ActivityIndicator, StyleSheet, View, Text } from 'react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import Apptheme from '../../../assets/theme/Apptheme';
 import Gap from '../../../components/atoms/Gap';
@@ -9,6 +9,7 @@ import { useSelector } from 'react-redux';
 import { Tabs } from 'react-native-collapsible-tab-view';
 import NewsCardShimmer from '../../../components/atoms/NewsCardShimmer';
 import { formatDateTime } from '../../../components/utils';
+import FontStyle from '../../../assets/theme/FontStyle';
 
 const PAGE_SIZE = 10;
 
@@ -90,6 +91,9 @@ const Private = ({grid = false ,FilterOption,fromDate,toDate,category,searched =
         contentContainerStyle={{paddingBottom:40,paddingTop:FilterOption ? 480: 100,paddingHorizontal:10}}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.4}
+        ListEmptyComponent={<View style={{flex:1,alignItems:'center',justifyContent:'center'}}>
+          <Text style={FontStyle.labelLarge}>No Published News</Text>
+        </View>}
         ListFooterComponent={
           loadingMore ? (
             <View style={{ flexDirection: grid ? 'row' : 'column', justifyContent: 'space-between', flexWrap: 'wrap' }}>

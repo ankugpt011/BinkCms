@@ -21,6 +21,7 @@ import {useSelector} from 'react-redux';
 import FontStyle from '../../assets/theme/FontStyle';
 import Gap from './Gap';
 import YoutubePlayer from 'react-native-youtube-iframe';
+import NetInfo from '@react-native-community/netinfo';
 
 const MediaSelector = ({onMediaSelect, initialMedia, fieldElement,files,key}) => {
   
@@ -149,10 +150,30 @@ const MediaSelector = ({onMediaSelect, initialMedia, fieldElement,files,key}) =>
   //   setMediaItems(parsedMedia);
   // }, [initialMedia, files]);
 
+
+  const checkInternet = async () => {
+    const state = await NetInfo.fetch();
+    console.log('checkInternet',state)
+    if (!state.isConnected) {
+      // Toast.show({
+      //   type: 'error',
+      //   text1: 'Offline Mode',
+      //   text2: 'This functionality is not available in offline mode',
+      // });
+      ToastAndroid.show('This functionality is not available in offline mode', ToastAndroid.SHORT);
+      return false;
+    }
+    return true;
+  };
+
   console.log('mediaItemssss',mediaItems)
 
   // Handle image selection from library
   const handleSelectFromLibrary = async () => {
+
+    const online = await checkInternet();
+  if (!online) return;
+
     try {
       const images = await ImagePicker.openPicker({
         width: 800,
@@ -295,6 +316,13 @@ const MediaSelector = ({onMediaSelect, initialMedia, fieldElement,files,key}) =>
     onMediaSelect && onMediaSelect(mediaIdsString);
   };
 
+  const ShowYoutubeOption =async()=>{
+    const online = await checkInternet();
+    if (!online) return;
+
+    setShowYoutubeInput(!showYoutubeInput)
+  }
+
 
   // Save caption for a specific image
   const handleSaveImageDetails = async () => {
@@ -337,7 +365,7 @@ const MediaSelector = ({onMediaSelect, initialMedia, fieldElement,files,key}) =>
       <View style={styles.buttonRow}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => setShowYoutubeInput(!showYoutubeInput)}>
+          onPress={() => {ShowYoutubeOption() ; }}>
           <Text style={styles.buttonText}>Add YouTube</Text>
         </TouchableOpacity>
         <TouchableOpacity

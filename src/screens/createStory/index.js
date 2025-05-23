@@ -58,15 +58,15 @@ const CreateStory = () => {
   const editValue = route.params?.data;
   console.log('editValue1', editValue);
 
-  const generateId = () => {
-    return (
+  const generateId = (existingId) => {
+    return existingId || (
       Math.random().toString(36).substring(2, 15) +
       Math.random().toString(36).substring(2, 15)
     );
   };
   const [formValues, setFormValues] = useState({
     action: 'create_multipage',
-    tempProcessId: generateId(),
+    tempProcessId: generateId(editValue?.tempProcessId),
     sessionId: userData?.sessionId,
     state: 'DRAFT',
   });
@@ -233,7 +233,9 @@ const CreateStory = () => {
 
     const net = await NetInfo.fetch();
 
-    // if (!net.isConnected) {
+    console.log('2345432body',body)
+
+    if (!net.isConnected) {
       const pendingQueue =
         JSON.parse(await AsyncStorage.getItem('pendingSubmissions')) || [];
       // pendingQueue.push(body);
@@ -267,7 +269,7 @@ const CreateStory = () => {
         handleNewStory();
       }
       return;
-    // }
+    }
 
     try {
       const response = await postStoryApi(body, CreateStoryApi(false));
@@ -335,21 +337,21 @@ const CreateStory = () => {
           );
           console.log('📡 Online detected - syncing pending submissions...');
 
-          // for (const form of queue) {
+          for (const form of queue) {
 
-          //   console.log('form234567898765432',form)
-          //   try {
-          //     await postStoryApi(form, CreateStoryApi(false));
-          //   } catch (err) {
-          //     console.error('❌ Failed syncing a form:', err);
-          //   }
-          // }
+            console.log('form234567898765432',form)
+            try {
+              await postStoryApi(form, CreateStoryApi(false));
+            } catch (err) {
+              console.error('❌ Failed syncing a form:', err);
+            }
+          }
 
-          // await AsyncStorage.removeItem('pendingSubmissions');
-          // ToastAndroid.show(
-          //   'Offline drafts synced successfully!',
-          //   ToastAndroid.SHORT,
-          // );
+          await AsyncStorage.removeItem('pendingSubmissions');
+          ToastAndroid.show(
+            'Offline drafts synced successfully!',
+            ToastAndroid.SHORT,
+          );
         }
       }
     });
@@ -362,6 +364,7 @@ const CreateStory = () => {
 
     const initialValues = {
       ...formValues,
+      tempProcessId: editValue?.tempProcessId || formValues.tempProcessId,
       ...(editValue && {uid: editValue.uid}),
     };
 
