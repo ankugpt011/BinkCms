@@ -13,8 +13,10 @@ const Apptheme = {
       red: '#C43523',
       blue: '#2374A9',
       green: 'rgb(74,132,44)',
-      primary:'rgb(67,117,215)',
-      primaryText:'rgb(85,137,197)'
+      primary:'#5E17EB',
+      subPrimary:'rgba(224,215,236,100)',
+      primaryText:'rgb(85,137,197)',
+      searchColor:'rgba(255,255,255,0.1)',
 
 
     },

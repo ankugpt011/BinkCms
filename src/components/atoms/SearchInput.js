@@ -2,21 +2,22 @@
 import React from 'react';
 import { View, TextInput, StyleSheet } from 'react-native';
 import VectorIcon from '../../assets/vectorIcons';
+import Apptheme from '../../assets/theme/Apptheme';
 
 
 
-const SearchInput = ({ placeholder, value, onChangeText }) => {
+const SearchInput = ({ placeholder, value, onChangeText,backgroundColor=Apptheme.color.searchColor,placeholderTextColor='#ffffff',iconColor="#ffffff",textColor='#fff' }) => {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container,{backgroundColor:backgroundColor}]}>
       <VectorIcon
         material-icon
         name="search"
         size={18}
-        color="#ffffff"
+        color={iconColor}
       />
       <TextInput
-        style={styles.input}
-        placeholderTextColor={'#ffffff'}
+        style={[styles.input,{color:textColor}]}
+        placeholderTextColor={placeholderTextColor}
         placeholder={placeholder}
         cursorColor={'#fff'}
         value={value}
@@ -31,7 +32,7 @@ export default SearchInput;
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: Apptheme.color.searchColor,
     borderRadius: 6,
     alignItems: 'center',
     paddingHorizontal: 10,

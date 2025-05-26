@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import VectorIcon from '../../assets/vectorIcons';
+import Apptheme from '../../assets/theme/Apptheme';
 
 const SearchableDropdown = ({
   data = [],
@@ -138,7 +139,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flexDirection: 'row',
-    backgroundColor: 'rgb(80,130,220)',
+    backgroundColor: Apptheme.color.searchColor,
     borderRadius: 6,
     height: 36,
     paddingHorizontal: 10,

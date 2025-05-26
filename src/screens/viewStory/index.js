@@ -707,7 +707,7 @@ const styles = StyleSheet.create({
   },
   dateButton: {
     flex: 1,
-    backgroundColor: 'rgb(80,130,220)',
+    backgroundColor: Apptheme.color.searchColor,
     borderRadius: 6,
     height: '100%',
     flexDirection: 'row',
@@ -716,7 +716,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   dropdownPicker: {
-    backgroundColor: 'rgb(80,130,220)',
+    backgroundColor:Apptheme.color.searchColor,
     borderColor: 'transparent',
     borderRadius: 6,
     height: 32,

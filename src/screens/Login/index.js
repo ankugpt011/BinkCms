@@ -29,6 +29,7 @@ import {
   PartnerCodeApi,
 } from '../../apiServices/apiHelper';
 import DeviceInfo from 'react-native-device-info';
+import Images from '../../assets/images';
 
 const Login = () => {
   const [password, setPassword] = useState('');
@@ -215,10 +216,10 @@ const Login = () => {
   };
 
   return (
+    <>
+      <StatusBar backgroundColor={Apptheme.color.primary}/>
     <ImageBackground
-      source={{
-        uri: 'https://plus.unsplash.com/premium_photo-1661475861393-7b2561865338?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8ODR8fHR5cGluZyUyMHBvcnRyYWl0fGVufDB8fDB8fHww',
-      }}
+      source={Images.pngImages.loginLogo}
       style={styles.imageBackground}
       resizeMode="cover">
       <View style={styles.overlay}>
@@ -235,11 +236,11 @@ const Login = () => {
                 FontStyle.headingLarge,
                 {
                   color: Apptheme.color.primary,
-                  marginBottom: 16,
+                  marginBottom: 10,
                   textAlign: 'center',
                 },
               ]}>
-              {partnerSuccess ? 'CMS Login' : 'Enter Your Partner ID'}
+              {partnerSuccess ? 'Welcome !!' : 'Enter Your Partner ID'}
             </Text>
           </View>
 
@@ -260,7 +261,7 @@ const Login = () => {
           )}
           {partnerSuccess && (
             <>
-              <Gap m6 />
+              <Gap m8 />
 
               <CustomTextInput
                 value={email}
@@ -301,11 +302,11 @@ const Login = () => {
                 <VectorIcon
                   material-community-icon
                   name="google"
-                  color={Apptheme.color.background}
+                  color={Apptheme.color.black}
                   size={18}
                   style={{marginRight: 10}}
                 />
-                <Text style={[FontStyle.labelMedium, {color: '#fff'}]}>
+                <Text style={[FontStyle.labelMedium, {color: 'black'}]}>
                   Login with Google
                 </Text>
               </TouchableOpacity>
@@ -314,6 +315,7 @@ const Login = () => {
         </View>
       </View>
     </ImageBackground>
+    </>
   );
 };
 
@@ -327,7 +329,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    // backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -348,7 +350,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   googleButton: {
-    backgroundColor: '#4285F4',
+    backgroundColor: Apptheme.color.subPrimary,
     borderRadius: 8,
     paddingVertical: 14,
     alignItems: 'center',

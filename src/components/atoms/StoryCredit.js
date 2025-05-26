@@ -10,6 +10,7 @@ import FontStyle from '../../assets/theme/FontStyle';
 import { debounce } from 'lodash';
 import useApi from '../../apiServices/UseApi';
 import { AuthorList } from '../../apiServices/apiHelper';
+import Apptheme from '../../assets/theme/Apptheme';
 
 const StoryCredit = ({
   types = [],
@@ -257,7 +258,7 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   addButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: Apptheme.color.primary,
     padding: 10,
     borderRadius: 8,
     alignItems: 'center',
