@@ -654,7 +654,7 @@ const NewDetailPage = () => {
         </View>
 
         <Gap m4 />
-        {route?.params?.type === 'Draft' || !route?.params?.id ? null : (
+        {/* {route?.params?.type === 'Draft' || !route?.params?.id ? null : (
           <View
             style={{
               padding: Apptheme.spacing.marginHorizontal,
@@ -693,7 +693,7 @@ const NewDetailPage = () => {
               <Text style={FontStyle.label}>By: archana@blinkcms.ai</Text>
             </View>
           </View>
-        )}
+        )} */}
         <Gap m4 />
 
         <Gap ml />

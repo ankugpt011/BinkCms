@@ -275,18 +275,23 @@ const MediaSelector = ({
   };
 
   const handleAddFromLibrary = (item) => {
-    const newMedia = {
+    
+    const newMedia=[]
+
+    newMedia.push({
       type: 'image',
       mediaId: item.mediaId,
       url: item.url,
       thumbUrl: item.thumbUrl,
       caption: item.caption,
       alt: item.alt
-    };
+    })
+
+    
 
     console.log('Adding new media:', newMedia); 
-  
-    const updatedMedia = [...mediaItems, newMedia];
+    setNewMediaItems(true);
+    const updatedMedia = [...mediaItems, ...newMedia];
     setMediaItems(updatedMedia);
     sendMediaToParent(updatedMedia);
     ToastAndroid.show('Image added successfully', ToastAndroid.SHORT);
@@ -309,7 +314,7 @@ const MediaSelector = ({
         mediaType: 'photo',
       });
 
-      console.log('handleSelectFromLibrary', images);
+      
       setUploading(true);
       const uploadedMedia = [];
 
@@ -444,6 +449,13 @@ const MediaSelector = ({
     if (!online) return;
 
     setShowYoutubeInput(!showYoutubeInput);
+  };
+
+  const showLibraryModal = async () => {
+    const online = await checkInternet();
+    if (!online) return;
+
+    setLibraryModal(true);
   };
 
   // Save caption for a specific image
@@ -582,7 +594,7 @@ const MediaSelector = ({
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => setLibraryModal(true)}
+          onPress={()=>showLibraryModal()}
           style={styles.button}>
           <Text style={styles.buttonText}>Library</Text>
         </TouchableOpacity>
