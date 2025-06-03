@@ -289,6 +289,7 @@ import {
   View,
   Alert,
   TextInput,
+  ToastAndroid,
 } from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
 import Apptheme from '../../assets/theme/Apptheme';
@@ -409,6 +410,20 @@ const EditBuzz = ({placeholder = 'Start typing here...'}) => {
   // Save or publish buzz
   const handleSubmit = async (status = 'DRAFT') => {
     try {
+
+      const trimmedHeading = heading?.trim();
+      if (!trimmedHeading || trimmedHeading === '') {
+       ToastAndroid.show('Please enter a heading for your buzz', ToastAndroid.SHORT);
+        return;
+      }
+
+      const plainTextStory = story.replace(/<[^>]*>?/gm, '').trim();
+    if (!plainTextStory || plainTextStory === '') {
+       ToastAndroid.show('Please enter some content for your buzz story', ToastAndroid.SHORT);
+      
+      return;
+    }
+
       if (status === 'PUBLISHED') {
         setIsPublishing(true);
       } else {

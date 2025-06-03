@@ -1,5 +1,7 @@
 import {
+  Platform,
   RefreshControl,
+  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -267,6 +269,7 @@ const Home = () => {
   };
 
   return (
+    <SafeAreaView style={{flex: 1,backgroundColor:Apptheme.color.primary}}>
     <>
       {!isConnected && (
         <View
@@ -292,6 +295,7 @@ const Home = () => {
         style={{
           backgroundColor: Apptheme.color.primary,
           padding: Apptheme.spacing.marginHorizontal,
+          paddingTop:0
         }}>
         <Gap m8 />
         <Text
@@ -350,6 +354,7 @@ const Home = () => {
         </View>
       </ScrollView>
     </>
+      </SafeAreaView>
   );
 };
 

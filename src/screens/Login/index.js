@@ -1,4 +1,5 @@
 import {
+  Image,
   ImageBackground,
   StatusBar,
   StyleSheet,
@@ -38,6 +39,7 @@ const Login = () => {
   const {partnerData} = useSelector(state => state.login);
   const [partnerSuccess, setPartnerSuccess] = useState(false);
   const [partnerDetail, setPartnerDetail] = useState();
+  const [logLoading,setLogLoading]=useState(false)
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const {data, loading, error, callApi} = useApi({
@@ -64,52 +66,75 @@ const Login = () => {
   });
 
   const PartnerConfirm = async () => {
+    console.log('hello', partnersCode.trim());
     if (partnersCode.trim() === '') {
       ToastAndroid.show('Please enter a partner code', ToastAndroid.SHORT);
       return;
     }
-  
+
     if (partnerSuccess) {
       ToastAndroid.show('Partner already confirmed', ToastAndroid.SHORT);
       return;
     }
-  
+
     try {
       const partnerRes = await callApi(null, PartnerCodeApi(partnersCode));
       console.log('partnerRes', partnerRes);
-  
+
       if (partnerRes && !partnerRes.errorMessage) {
         dispatch(setPartnerData(partnerRes));
         setPartnerDetail(partnerRes);
         setPartnerSuccess(true);
-        ToastAndroid.show('Partner code verified successfully', ToastAndroid.SHORT);
-      } else {
         ToastAndroid.show(
-           'Invalid Partner Code', 
-          ToastAndroid.SHORT
+          'Partner code verified successfully',
+          ToastAndroid.SHORT,
         );
+      } else {
+        ToastAndroid.show('Invalid Partner Code', ToastAndroid.SHORT);
         setPartnerSuccess(false);
       }
     } catch (err) {
       console.error('Partner confirmation error:', err);
       ToastAndroid.show(
-        err?.message || 'Failed to verify partner code', 
-        ToastAndroid.SHORT
+        err?.message || 'Failed to verify partner code',
+        ToastAndroid.SHORT,
       );
       setPartnerSuccess(false);
     }
   };
 
   const handleLogin = async () => {
-    if (!partnerSuccess) {
-      ToastAndroid.show(
-        'Please Confirm your partner code first',
-        ToastAndroid.SHORT,
-      );
+
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+  
+    if (trimmedEmail === '') {
+      ToastAndroid.show('Please enter your email', ToastAndroid.SHORT);
+      return;
+    }
+  
+    // Email validation with regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      ToastAndroid.show('Please enter a valid email address', ToastAndroid.SHORT);
+      return;
+    }
+  
+    // Check for uppercase email (optional)
+    if (trimmedEmail !== trimmedEmail.toLowerCase()) {
+      ToastAndroid.show('Email should be in lowercase', ToastAndroid.SHORT);
+      return;
+    }
+  
+    if (trimmedPassword === '') {
+      ToastAndroid.show('Please enter your Password', ToastAndroid.SHORT);
       return;
     }
 
     try {
+
+      setLogLoading(true)
+
       const loginUrl = LoginApi(
         partnerData.app,
         partnerData.partner,
@@ -125,24 +150,36 @@ const Login = () => {
 
       console.log('responsefghbjnkmjhg', response);
 
+      if (response?.error) {
+        ToastAndroid.show(
+          response.errorMessage || 'Login failed',
+          ToastAndroid.SHORT,
+        );
+        return;
+      }
+
       if (response) {
         dispatch(setLoginData(response));
         navigation.reset({
           index: 0,
           routes: [{name: RouteName.BOTTOM_TAB}],
         });
+        setLogLoading(false)
       } else {
         ToastAndroid.show('Invalid Detail', ToastAndroid.SHORT);
+        setLogLoading(false)
       }
     } catch (err) {
       console.error('Login error:', err);
+    }finally{
+      setLogLoading(false)
     }
   };
 
   useEffect(() => {
     GoogleSignin.configure({
-      webClientId:
-        '1058846645245-614h8fha6st3qds0mgqmv1cadct9j83v.apps.googleusercontent.com',
+      webClientId:'1058846645245-614h8fha6st3qds0mgqmv1cadct9j83v.apps.googleusercontent.com'
+        // '1058846645245-614h8fha6st3qds0mgqmv1cadct9j83v.apps.googleusercontent.com',
     });
   }, []);
 
@@ -217,104 +254,111 @@ const Login = () => {
 
   return (
     <>
-      <StatusBar backgroundColor={Apptheme.color.primary}/>
-    <ImageBackground
-      source={Images.pngImages.loginLogo}
-      style={styles.imageBackground}
-      resizeMode="cover">
-      <View style={styles.overlay}>
-        <View style={styles.box}>
-          <View>
-          {partnerSuccess &&
-            <TouchableOpacity
-              style={{position: 'absolute',zIndex:10000}}
-              onPress={() => onChangePartnerCode()}>
-              <VectorIcon material-icon name="arrow-back-ios" size={20} />
-            </TouchableOpacity>}
-            <Text
-              style={[
-                FontStyle.headingLarge,
-                {
-                  color: Apptheme.color.primary,
-                  marginBottom: 10,
-                  textAlign: 'center',
-                },
-              ]}>
-              {partnerSuccess ? 'Welcome !!' : 'Enter Your Partner ID'}
-            </Text>
-          </View>
+      <StatusBar backgroundColor={Apptheme.color.primary} />
+      <ImageBackground
+        source={Images.pngImages.loginLogo}
+        style={styles.imageBackground}
+        resizeMode="cover">
+        <View style={styles.overlay}>
+          <View style={styles.box}>
+            <View>
+              {partnerSuccess && (
+                <TouchableOpacity
+                  style={{position: 'absolute', zIndex: 10000}}
+                  onPress={() => onChangePartnerCode()}>
+                  <VectorIcon material-icon name="arrow-back-ios" size={20} />
+                </TouchableOpacity>
+              )}
+              <Text
+                style={[
+                  FontStyle.headingLarge,
+                  {
+                    color: Apptheme.color.primary,
+                    marginBottom: 10,
+                    textAlign: 'center',
+                  },
+                ]}>
+                {partnerSuccess ? 'Welcome !!' : 'Enter Your Partner ID'}
+              </Text>
+            </View>
 
-          {partnerSuccess ? (
-            <Text style={[FontStyle.heading, {textAlign: 'center'}]}>
-              {partnerDetail?.displayName}
-            </Text>
-          ) : (
-            <CustomTextInput
-              value={partnersCode}
-              // value={partnersCode}
-              onChangeText={onChangePartnerCode}
-              placeholder="Partners Code"
-              RightButton={true}
-              onRightButtonPress={() => PartnerConfirm()}
-              rightButtonText={partnerSuccess ? 'Confirmed' : 'Confirm'}
-            />
-          )}
-          {partnerSuccess && (
-            <>
-              <Gap m8 />
-
+            {partnerSuccess ? (
+              <Text style={[FontStyle.heading, {textAlign: 'center'}]}>
+                {partnerDetail?.displayName}
+              </Text>
+            ) : (
               <CustomTextInput
-                value={email}
-                onChangeText={e => setEmail(e)}
-                placeholder="Enter Email"
-                leftIconName="email-outline"
-                rightIconName="close-circle"
-                onRightIconPress={() => setEmail('')}
+                value={partnersCode}
+                // value={partnersCode}
+                onChangeText={onChangePartnerCode}
+                placeholder="Partners Code"
+                RightButton={true}
+                onRightButtonPress={() => PartnerConfirm()}
+                rightButtonText={partnerSuccess ? 'Confirmed' : 'Confirm'}
               />
-              <Gap m6 />
-              <CustomTextInput
-                value={password}
-                onChangeText={e => setPassword(e)}
-                placeholder="Enter Password"
-                secureTextEntry={true}
-                leftIconName="lock-outline"
-                showTogglePassword={true}
-              />
-              <Gap m6 />
+            )}
+            {partnerSuccess && (
+              <>
+                <Gap m8 />
 
-              <TouchableOpacity
-                // onPress={() => navigation.navigate(RouteName.BOTTOM_TAB)}
-                onPress={() => handleLogin()}
-                style={styles.loginButton}>
-                <Text
-                  style={[
-                    FontStyle.labelMedium,
-                    {color: Apptheme.color.background},
-                  ]}>
-                  Login
-                </Text>
-              </TouchableOpacity>
+                <CustomTextInput
+                  value={email}
+                  onChangeText={e => setEmail(e)}
+                  placeholder="Enter Email"
+                  leftIconName="email-outline"
+                  rightIconName="close-circle"
+                  onRightIconPress={() => setEmail('')}
+                />
+                <Gap m6 />
+                <CustomTextInput
+                  value={password}
+                  onChangeText={e => setPassword(e)}
+                  placeholder="Enter Password"
+                  secureTextEntry={true}
+                  leftIconName="lock-outline"
+                  showTogglePassword={true}
+                />
+                <Gap m6 />
 
-              <Gap m6 />
-              <TouchableOpacity
-                onPress={handleGoogleLogin}
-                style={styles.googleButton}>
-                <VectorIcon
+                <TouchableOpacity
+                  // onPress={() => navigation.navigate(RouteName.BOTTOM_TAB)}
+                  onPress={() => {logLoading?'':handleLogin()}}
+                  style={styles.loginButton}>
+                  <Text
+                    style={[
+                      FontStyle.labelMedium,
+                      {color: Apptheme.color.background},
+                    ]}>
+                    {logLoading?'loading...' :'Login'}
+                  </Text>
+                </TouchableOpacity>
+
+                <Gap m6 />
+                <TouchableOpacity
+                  onPress={handleGoogleLogin}
+                  style={styles.googleButton}>
+                  {/* <VectorIcon
                   material-community-icon
                   name="google"
                   color={Apptheme.color.black}
                   size={18}
                   style={{marginRight: 10}}
-                />
-                <Text style={[FontStyle.labelMedium, {color: 'black'}]}>
-                  Login with Google
-                </Text>
-              </TouchableOpacity>
-            </>
-          )}
+                /> */}
+                  <Image
+                    source={Images.pngImages.googleImage}
+                    style={{marginRight: 10}}
+                    height={18}
+                    width={18}
+                  />
+                  <Text style={[FontStyle.labelMedium, {color: 'black'}]}>
+                    Login with Google
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
         </View>
-      </View>
-    </ImageBackground>
+      </ImageBackground>
     </>
   );
 };

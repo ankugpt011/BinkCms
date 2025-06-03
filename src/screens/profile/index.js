@@ -11,6 +11,7 @@ import {
   Alert,
   ActivityIndicator,
   ToastAndroid,
+  SafeAreaView,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import Apptheme from '../../assets/theme/Apptheme';
@@ -190,7 +191,9 @@ const Profile = () => {
   }, []);
 
   return (
+    <SafeAreaView style={{flex: 1,backgroundColor:Apptheme.color.primary}}>
     <>
+    <StatusBar backgroundColor={Apptheme.color.primary} />
     {!isConnected && (
           <View
             style={{
@@ -210,7 +213,6 @@ const Profile = () => {
             <Text style={FontStyle.labelMedium}>You are offline</Text>
           </View>
         )}
-      <StatusBar backgroundColor={Apptheme.color.primary} />
       <View
         style={{
           backgroundColor: Apptheme.color.primary,
@@ -316,6 +318,7 @@ const Profile = () => {
         </View>
       </Modal>
     </>
+    </SafeAreaView>
   );
 };
 

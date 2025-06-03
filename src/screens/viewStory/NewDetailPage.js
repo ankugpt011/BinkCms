@@ -75,7 +75,7 @@ const NewDetailPage = () => {
           10,
           sessionId,
           route.params?.id,
-          route?.params.type == 'Private' ? 'PRIVATE' : null,
+          route?.params.type == 'Private' ? 'PRIVATE' :route?.params.type == 'SCHEDULED'?'SCHEDULED': null,
         ),
       );
       setData(res?.news[0]);
@@ -470,6 +470,8 @@ const NewDetailPage = () => {
           <Gap m1 />
           <Text style={FontStyle.labelLarge}>{data?.keywords}</Text>
           <Gap m3 />
+          {route?.params?.type === 'Draft' || !route?.params?.id ? null :
+          <>
           <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
             News URL
           </Text>
@@ -481,7 +483,9 @@ const NewDetailPage = () => {
             ]}>
             {data?.url}
           </Text>
+
           <Gap m3 />
+          </>}
           <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
             Cover Images
           </Text>
@@ -648,7 +652,7 @@ const NewDetailPage = () => {
               Created By
             </Text>
             <Text style={[FontStyle.labelLarge, {flex: 3}]}>
-              {data?.authorName}
+              {data?.createdby_name}
             </Text>
           </View>
         </View>

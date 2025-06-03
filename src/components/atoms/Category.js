@@ -29,8 +29,8 @@ const Category = ({ value, onChange, categories = [],placeholder='-Select Catego
   }, [value, categories]);
 
   const filteredCategories = categories?.filter(item =>
-    item.name.toLowerCase().includes(search.toLowerCase()) ||
-    item.value.toLowerCase().includes(search.toLowerCase())
+    item.name?.toLowerCase().includes(search.toLowerCase()) ||
+    item.value?.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleSelect = (item) => {

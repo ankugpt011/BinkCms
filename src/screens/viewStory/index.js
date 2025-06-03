@@ -7,6 +7,7 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
+  SafeAreaView,
 } from 'react-native';
 import {
   MaterialTabBar,
@@ -575,6 +576,7 @@ const ViewStory = () => {
       setIsConnected(state.isConnected);
       if (state.isConnected) {
         SyncPendingSubmissions(postStoryApi);
+        setRefresh(!refresh)
       }
     });
 
@@ -599,7 +601,8 @@ const ViewStory = () => {
   };
 
   return (
-    <>
+    <SafeAreaView style={{flex: 1,backgroundColor:Apptheme.color.primary}}>
+    <View style={{flex:1,backgroundColor:Apptheme.color.containerBackground}}>
       {!isConnected && (
         <View
           style={{
@@ -680,7 +683,8 @@ const ViewStory = () => {
           />
         </Tabs.Tab>
       </Tabs.Container>
-    </>
+    </View>
+    </SafeAreaView>
   );
 };
 

@@ -14,11 +14,27 @@
       },
       "oauth_client": [
         {
+          "client_id": "1058846645245-fadvg88gvcmt8iek0vquriaodjkd3nnk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.blink.cms",
+            "certificate_hash": "7946920878f34392d6bfc8d9695b8cf7c5f2f18d"
+          }
+        },
+        {
           "client_id": "1058846645245-fh7q154ueg2tp5smj46qdrqdl00ontjb.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.blink.cms",
             "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "1058846645245-u23pug7gd4v5qpera9hmu5mt6t98s62t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.blink.cms",
+            "certificate_hash": "91278b43c5e3e6463621f486460d290b5019d1a7"
           }
         },
         {
@@ -37,6 +53,13 @@
             {
               "client_id": "1058846645245-614h8fha6st3qds0mgqmv1cadct9j83v.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "1058846645245-pu4829t4qann5l0vtcln3e140bjmlgj5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.blinkcms.ai"
+              }
             }
           ]
         }

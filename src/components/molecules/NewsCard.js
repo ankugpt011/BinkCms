@@ -8,6 +8,7 @@ import {
   Pressable,
   Modal,
   Alert,
+  ToastAndroid,
 } from 'react-native';
 import VectorIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Apptheme from '../../assets/theme/Apptheme';
@@ -28,7 +29,7 @@ import WebView from 'react-native-webview';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import {formatToIST} from '../atoms/formatToIST';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// import Clipboard from '@react-native-clipboard/clipboard';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 const NewsCard = ({id, image, author, title, date, grid, type, url, item}) => {
   console.log('datedatedatefvgbvfdcsx', date);
@@ -95,10 +96,11 @@ const NewsCard = ({id, image, author, title, date, grid, type, url, item}) => {
   };
 
   const handleCopyUrl = () => {
-    // const fullUrl = `${apiEndPoint}${url}`;
-    // Clipboard.setString(fullUrl);
-    // Alert.alert('Copied', 'URL has been copied to clipboard');
-    // closeMenu(); // Optionally close the menu
+    const fullUrl = `${apiEndPoint}${url}`;
+    Clipboard.setString(fullUrl);
+     ToastAndroid.show('URL has been copied successfully', ToastAndroid.SHORT);
+    
+    closeMenu(); // Optionally close the menu
   };
 
   const handleDelete = async () => {
@@ -178,6 +180,23 @@ const NewsCard = ({id, image, author, title, date, grid, type, url, item}) => {
       // setPendingData(updatedPending);
     } catch (error) {
       console.error('Error deleting submission:', error);
+    }
+  };
+
+  const handleWebViewNavigation = navState => {
+    // Check if the current URL no longer contains the newsId parameter
+    console.log('navState.url', navState.url);
+    const urlHasNewsId = navState.url.includes(`newsId=${id}`);
+
+    if (!urlHasNewsId) {
+      closeWebView();
+      // fetchData(); // Refresh the news data
+      dispatch(
+        triggerStoryRefresh({
+          id,
+          action: 'editUpdate',
+        }),
+      );
     }
   };
 
@@ -406,6 +425,7 @@ const NewsCard = ({id, image, author, title, date, grid, type, url, item}) => {
             javaScriptEnabled={true}
             domStorageEnabled={true}
             sharedCookiesEnabled={true}
+            onNavigationStateChange={handleWebViewNavigation}
             // onNavigationStateChange={navState => {
             //   // Keep track of going back navigation within component
             //  console.log('onNavigationStateChange====>', navState);
@@ -422,7 +442,7 @@ const NewsCard = ({id, image, author, title, date, grid, type, url, item}) => {
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Delete</Text>
             <Text style={styles.modalText}>
-              Are you sure you want to Delete this buzz?
+              Are you sure you want to Delete this News?
             </Text>
 
             <View style={styles.buttonContainer}>

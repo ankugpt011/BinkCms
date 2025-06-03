@@ -6,6 +6,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -32,7 +33,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import ScheduleModal from '../../components/atoms/ScheduleModal';
 import {formatDateTime} from '../../components/utils';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import {SyncPendingSubmissions} from '../../components/molecules/SyncPendingSubmissions';
 import RouteName from '../../navigation/RouteName';
 import { triggerStoryRefresh } from '../../redux/reducer/StoryUpdateSlice';
@@ -42,7 +43,9 @@ const CreateStory = () => {
   const flatListRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const userData = useSelector(state => state.login.userData);
+  const isFocused = useIsFocused();
   console.log('userDatauserDatauserDatauserData', userData);
+  const [isConnected,setIsConnected]=useState(true)
   const [isDirty, setIsDirty] = useState(false);
   const [data, setData] = useState();
   const [headerData, setHeaderData] = useState([]);
@@ -321,25 +324,44 @@ const CreateStory = () => {
     // do something with date (e.g., store in form state)
   };
 
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      if (isDirty) {
-        console.log('⏳ Auto-saving form...');
-        try {
-          const autoSaveResponse = await postStoryApi(
-            formValues,
-            CreateStoryApi(true),
-          );
-          console.log('✅ Auto-save response:', autoSaveResponse);
-          setIsDirty(false); // Reset dirty flag
-        } catch (error) {
-          console.error('❌ Auto-save error:', error);
-        }
-      }
-    }, 10000); // every 10 sec
+  // useEffect(() => {
+  //   const interval = setInterval(async () => {
+  //     console.log('isDirtyisDirty',isDirty)
+  //     if (isDirty) {
+  //       console.log('⏳ Auto-saving form...');
+  //       try {
+  //         const autoSaveResponse = await postStoryApi(
+  //           formValues,
+  //           CreateStoryApi(true),
+  //         );
+  //         console.log('✅ Auto-save response:', autoSaveResponse);
+  //         setIsDirty(false); // Reset dirty flag
+  //       } catch (error) {
+  //         console.error('❌ Auto-save error:', error);
+  //       }
+  //     }
+  //   }, 10000); // every 10 sec
 
+  //   return () => clearInterval(interval); // cleanup on unmount
+  // }, [isDirty, formValues]);
+
+  useEffect(() => {
+    if (!isFocused) return;
+    const interval = setInterval(async () => {
+      console.log('⏳ Auto-saving form...');
+      try {
+        const autoSaveResponse = await postStoryApi(
+          formValues,
+          CreateStoryApi(true),
+        );
+        console.log('✅ Auto-save response:', autoSaveResponse);
+      } catch (error) {
+        console.error('❌ Auto-save error:', error);
+      }
+    }, 5000); // every 5 seconds
+  
     return () => clearInterval(interval); // cleanup on unmount
-  }, [isDirty, formValues]);
+  }, [formValues,isFocused]); // Only re-run if formValues changes
 
   const offlineData = AsyncStorage.getItem('pendingSubmissions');
   console.log('offlineData', offlineData);
@@ -382,6 +404,18 @@ const CreateStory = () => {
 
     return () => unsubscribe(); // Clean up listener on unmount
   }, [userData]);
+
+
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected);
+      
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   const initializeFormValues = layoutData => {
     if (initialized || !layoutData) return;
@@ -495,11 +529,12 @@ const CreateStory = () => {
   console.log('netStatus', netStatus);
 
   return (
+    <SafeAreaView style={{flex: 1,backgroundColor:Apptheme.color.primary}}>
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{flex: 1}}>
+      style={{flex: 1,backgroundColor:Apptheme.color.containerBackground}}>
       <View style={styles.container}>
-        {!netStatus && (
+        {!isConnected && (
           <View
             style={{
               backgroundColor: Apptheme.color.containerBackground,
@@ -624,7 +659,7 @@ const CreateStory = () => {
                     />
                     <Text style={FontStyle.labelLarge}>Save</Text>
                   </TouchableOpacity>
-                  {netStatus && (
+                  {isConnected && (
                     <TouchableOpacity
                       // onPress={() => handleSubmit('SUBMITTED')}
                       onPress={() => {
@@ -644,7 +679,7 @@ const CreateStory = () => {
                     </TouchableOpacity>
                   )}
                 </View>
-                {netStatus && (
+                {isConnected && (
                   <>
                     {userData?.can_publish_story ? (
                       <View
@@ -795,6 +830,7 @@ const CreateStory = () => {
         </View>
       </Modal>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 

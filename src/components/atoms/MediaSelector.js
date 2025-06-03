@@ -499,7 +499,7 @@ const MediaSelector = ({
           marginBottom: 10,
           borderColor: Apptheme.color.containerBackground,
         }}>
-        <Image source={{uri: item?.url}} style={{height: 140, width: 145}} />
+        <Image source={{uri: item?.url}} style={{height: 140, width: 130}} />
         <Gap m2 />
         <TouchableOpacity
           onPress={() => handleAddFromLibrary(item)}
