@@ -1,4 +1,4 @@
-import { FlatList, ActivityIndicator, StyleSheet, View, Text } from 'react-native';
+import { FlatList, ActivityIndicator, StyleSheet, View, Text, RefreshControl } from 'react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import Apptheme from '../../../assets/theme/Apptheme';
 import Gap from '../../../components/atoms/Gap';
@@ -21,6 +21,7 @@ const Private = ({grid = false ,FilterOption,fromDate,toDate,category,searched =
   const [hasMore, setHasMore] = useState(true);
   const { refreshCount } = useSelector(state => state.storyUpdate);
   console.log('refreshCount',refreshCount)
+const [refreshing, setRefreshing] = useState(false);
 
   console.log('filterOption',FilterOption)
   const formattedFromDate = fromDate ? formatDateTime(fromDate) : '';
@@ -65,6 +66,21 @@ const Private = ({grid = false ,FilterOption,fromDate,toDate,category,searched =
     }
   };
 
+
+   const handleRefresh = useCallback(async () => {
+          setRefreshing(true);
+          try {
+            // Reset pagination and fetch fresh data
+            setStoryData([]);
+            setStartIndex(0);
+            setHasMore(true);
+            await fetchData(0);
+          } finally {
+            setRefreshing(false);
+          }
+        }, [fetchData]);
+  
+
   console.log('startIndex',startIndex)
 
   const RenderView = ({ item, index }) => (
@@ -76,6 +92,7 @@ const Private = ({grid = false ,FilterOption,fromDate,toDate,category,searched =
       title={item?.heading}
       grid={grid}
       type={'Private'}
+      url={item?.url}
     />
   );
 
@@ -91,6 +108,14 @@ const Private = ({grid = false ,FilterOption,fromDate,toDate,category,searched =
         contentContainerStyle={{paddingBottom:40,paddingTop:FilterOption ? 480: 100,paddingHorizontal:10}}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.4}
+        refreshControl={ // Add this prop
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[Apptheme.color.primary]} // Customize as needed
+            tintColor={Apptheme.color.primary} // Customize as needed
+          />
+        }
         ListEmptyComponent={
           loadingMore?null:
           <View style={{flex:1,alignItems:'center',justifyContent:'center'}}>

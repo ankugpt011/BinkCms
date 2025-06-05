@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  ToastAndroid,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -28,6 +29,8 @@ import {formatToIST} from '../../components/atoms/formatToIST';
 const NewDetailPage = () => {
   const navigation = useNavigation();
   const userData = useSelector(state => state.login.userData);
+  const {apiKey, apiEndPoint, partnerData} = useSelector(state => state.login);
+  
   const categoriesData = useSelector(
     state => state.metaData.categories.categories,
   );
@@ -56,7 +59,8 @@ const NewDetailPage = () => {
     manual: true,
   });
 
-  const editUrl = `https://stagingdc.hocalwire.in//news/add-news/edit_news_applite.jsp?newsId=${route?.params?.id}&page=1&sessionId=${sessionId}`;
+  // const editUrl = `https://stagingdc.hocalwire.in//news/add-news/edit_news_applite.jsp?newsId=${route?.params?.id}&page=1&sessionId=${sessionId}`;
+  const editUrl = `${partnerData?.cmsUrl}//news/add-news/edit_news_applite.jsp?newsId=${id}&page=1&sessionId=${sessionId}`;
 
   const fetchData = useCallback(async () => {
     let res;
@@ -219,6 +223,10 @@ const NewDetailPage = () => {
     if (!urlHasNewsId) {
       closeWebView();
       fetchData(); // Refresh the news data
+       ToastAndroid.show(
+              'Your news has been updated successfully.',
+              ToastAndroid.SHORT,
+            );
     }
   };
 
@@ -395,7 +403,7 @@ const NewDetailPage = () => {
           </Text>
           <Gap m1 />
           <Text style={FontStyle.labelLarge}>
-            {formatToIST(data?.date_news || data?.date_updated)}
+            {formatToIST(data?.date_updated ||data?.date_news ||  data?.date_created)}
           </Text>
           <Gap m3 />
           <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>

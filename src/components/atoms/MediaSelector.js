@@ -308,7 +308,7 @@ const MediaSelector = ({
     try {
       const images = await ImagePicker.openPicker({
         width: 800,
-        height: 800,
+        height: 480,
         cropping: true,
         compressImageQuality: 0.8,
         mediaType: 'photo',

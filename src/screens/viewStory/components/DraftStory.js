@@ -1,5 +1,5 @@
 
-import { FlatList, ActivityIndicator, StyleSheet, View, Text } from 'react-native';
+import { FlatList, ActivityIndicator, StyleSheet, View, Text, RefreshControl } from 'react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import Apptheme from '../../../assets/theme/Apptheme';
 import Gap from '../../../components/atoms/Gap';
@@ -27,6 +27,7 @@ const DraftStory = ({ grid = false ,FilterOption,fromDate,toDate,category,search
 
   const formattedFromDate = fromDate ? formatDateTime(fromDate) : '';
   const formattedToDate = toDate ? formatDateTime(toDate) : '';
+  const [refreshing, setRefreshing] = useState(false);
 
 
   console.log('formattedFromDate1234author',author)
@@ -58,6 +59,20 @@ const DraftStory = ({ grid = false ,FilterOption,fromDate,toDate,category,search
   useEffect(() => {
     fetchPendingSubmissions();
   }, [fetchPendingSubmissions, refreshCount, refresh]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      // Reset pagination and fetch fresh data
+      setStoryData([]);
+      setStartIndex(0);
+      setHasMore(true);
+      await fetchData(0);
+      await fetchPendingSubmissions();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchData, fetchPendingSubmissions]);
 
 
 
@@ -109,7 +124,7 @@ const DraftStory = ({ grid = false ,FilterOption,fromDate,toDate,category,search
     <NewsCard
       id={item?.uid}
       image={imageUrl?imageUrl:""}
-      date={item?.date_updated}
+      date={item?.date_updated || item?.date_created}
       author={item?.authorName}
       title={item?.heading}
       grid={grid}
@@ -134,11 +149,21 @@ const DraftStory = ({ grid = false ,FilterOption,fromDate,toDate,category,search
         contentContainerStyle={{paddingBottom:40,paddingTop:FilterOption ? 480: 100,paddingHorizontal:10}}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.4}
+        refreshControl={ // Add this prop
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[Apptheme.color.primary]} // Customize as needed
+            tintColor={Apptheme.color.primary} // Customize as needed
+          />
+        }
         ListEmptyComponent={
-        loadingMore?null:
-        <View style={{flex:1,alignItems:'center',justifyContent:'center'}}>
-          <Text style={FontStyle.labelLarge}>No Draft Stories</Text>
-        </View>}
+          refreshing ? null : ( // Don't show empty state while refreshing
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={FontStyle.labelLarge}>No Draft Stories</Text>
+            </View>
+          )
+        }
         ListFooterComponent={
           loadingMore ? (
             <View style={{ flexDirection: grid ? 'row' : 'column', justifyContent: 'space-between', flexWrap: 'wrap' }}>

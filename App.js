@@ -10,7 +10,7 @@ import Apptheme from './src/assets/theme/Apptheme';
 
 const App = () => {
   return (
-    // <SafeAreaView style={{flex: 1,backgroundColor:'rgb(119,75,228)'}}>
+    <SafeAreaView style={{flex: 1,backgroundColor:'rgb(119,75,228)'}}>
       <GestureHandlerRootView style={{ flex: 1 }}>
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
@@ -18,7 +18,7 @@ const App = () => {
         </PersistGate>
       </Provider>
       </GestureHandlerRootView>
-    //  </SafeAreaView>
+      </SafeAreaView>
   );
 };
 

@@ -340,7 +340,7 @@ const EditBuzz = ({placeholder = 'Start typing here...'}) => {
   const handleImageUpload = async () => {
     try {
       const image = await ImagePicker.openPicker({
-        width: screenWidth - 40,
+        width: 500,
         height: 300,
         cropping: true,
         mediaType: 'photo',

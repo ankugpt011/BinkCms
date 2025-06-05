@@ -39,7 +39,8 @@ const NewsCard = ({id, image, author, title, date, grid, type, url, item}) => {
   const [webViewVisible, setWebViewVisible] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const {apiKey, apiEndPoint, partnerData} = useSelector(state => state.login);
-  console.log('typetypetypetype', apiEndPoint);
+  console.log('typetypetypetype', apiEndPoint,partnerData?.cmsUrl);
+  
 
   const handleEditPress = () => {
     closeMenu();
@@ -137,7 +138,8 @@ const NewsCard = ({id, image, author, title, date, grid, type, url, item}) => {
   };
 
   console.log('image123456', image);
-  const editUrl = `https://stagingdc.hocalwire.in//news/add-news/edit_news_applite.jsp?newsId=${id}&page=1&sessionId=${sessionId}`;
+  // const editUrl = `https://stagingdc.hocalwire.in//news/add-news/edit_news_applite.jsp?newsId=${id}&page=1&sessionId=${sessionId}`;
+  const editUrl = `${partnerData?.cmsUrl}//news/add-news/edit_news_applite.jsp?newsId=${id}&page=1&sessionId=${sessionId}`;
 
   const extractYoutubeId = mediaId => {
     if (mediaId.startsWith('yt_')) {
@@ -417,7 +419,7 @@ const NewsCard = ({id, image, author, title, date, grid, type, url, item}) => {
           <TouchableOpacity style={styles.closeButton} onPress={closeWebView}>
             <VectorIcon name="close" size={24} color={Apptheme.color.black} />
           </TouchableOpacity>
-          {console.log('editURL', editUrl)}
+          {console.log('editURL1234565432', editUrl)}
           <WebView
             source={{uri: editUrl}}
             style={styles.webView}

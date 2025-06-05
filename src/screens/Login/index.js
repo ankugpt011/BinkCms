@@ -194,6 +194,7 @@ const Login = () => {
 
     try {
       await GoogleSignin.hasPlayServices();
+      await GoogleSignin.signOut();
       const userInfo = await GoogleSignin.signIn();
       console.log('Google User Info:', userInfo?.data?.user?.givenName);
 
@@ -223,6 +224,13 @@ const Login = () => {
         ),
       );
       console.log('response12345', response);
+      if (response?.error) {
+        ToastAndroid.show(
+           'Email Id  not registered',
+          ToastAndroid.SHORT,
+        );
+        return;
+      }
 
       if (response) {
         dispatch(setLoginData(response));

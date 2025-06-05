@@ -626,6 +626,7 @@ const ViewStory = () => {
         renderHeader={Header}
         revealHeaderOnScroll
         initialTabName={getInitialTabName()}
+        
         renderTabBar={tabBar}>
         <Tabs.Tab name="Draft-Story">
           <DraftStory

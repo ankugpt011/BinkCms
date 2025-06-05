@@ -1,4 +1,4 @@
-import { FlatList, ActivityIndicator, StyleSheet, View, Text } from 'react-native';
+import { FlatList, ActivityIndicator, StyleSheet, View, Text, RefreshControl } from 'react-native';
 import React, { useEffect, useState, useCallback } from 'react';
 import Apptheme from '../../../assets/theme/Apptheme';
 import Gap from '../../../components/atoms/Gap';
@@ -24,6 +24,7 @@ const Published = ({ grid = false ,FilterOption,fromDate,toDate,category,searche
   const formattedFromDate = fromDate ? formatDateTime(fromDate) : '';
     const formattedToDate = toDate ? formatDateTime(toDate) : '';
     const { refreshCount } = useSelector(state => state.storyUpdate);
+    const [refreshing, setRefreshing] = useState(false);
 
   const { loading, callApi } = useApi({
     method: 'GET',
@@ -75,8 +76,23 @@ const Published = ({ grid = false ,FilterOption,fromDate,toDate,category,searche
       title={item?.heading}
       grid={grid}
       type={"Published"}
+      url={item?.url}
     />
   );
+
+
+  const handleRefresh = useCallback(async () => {
+        setRefreshing(true);
+        try {
+          // Reset pagination and fetch fresh data
+          setStoryData([]);
+          setStartIndex(0);
+          setHasMore(true);
+          await fetchData(0);
+        } finally {
+          setRefreshing(false);
+        }
+      }, [fetchData]);
 
   return (
    
@@ -86,6 +102,14 @@ const Published = ({ grid = false ,FilterOption,fromDate,toDate,category,searche
         renderItem={({ item, index }) => <RenderView item={item} index={index} />}
         keyExtractor={(item, index) => item?.newsId?.toString() || index.toString()}
         numColumns={grid ? 2 : 1}
+        refreshControl={ // Add this prop
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[Apptheme.color.primary]} // Customize as needed
+            tintColor={Apptheme.color.primary} // Customize as needed
+          />
+        }
         ListEmptyComponent={
           loadingMore?null:
           <View style={{flex:1,alignItems:'center',justifyContent:'center'}}>
