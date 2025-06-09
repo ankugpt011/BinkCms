@@ -386,7 +386,7 @@ const NewsCard = ({id, image, author, title, date, grid, type, url, item}) => {
                     color={Apptheme.color.black}
                   />
                   <Text style={styles.menuText}>
-                    Mark {type == 'Published' ? 'PRIVATE' : 'APPROVED'}
+                     {type == 'Published' ? 'Mark PRIVATE' : 'Make it LIVE'}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity

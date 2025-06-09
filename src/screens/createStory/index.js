@@ -76,6 +76,7 @@ const CreateStory = () => {
     tempProcessId: generateId(editValue?.tempProcessId),
     sessionId: userData?.sessionId,
     state: 'DRAFT',
+    
   });
 
   const sectionOffsets = useRef({});

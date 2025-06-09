@@ -60,7 +60,7 @@ const NewDetailPage = () => {
   });
 
   // const editUrl = `https://stagingdc.hocalwire.in//news/add-news/edit_news_applite.jsp?newsId=${route?.params?.id}&page=1&sessionId=${sessionId}`;
-  const editUrl = `${partnerData?.cmsUrl}//news/add-news/edit_news_applite.jsp?newsId=${id}&page=1&sessionId=${sessionId}`;
+  const editUrl = `${partnerData?.cmsUrl}//news/add-news/edit_news_applite.jsp?newsId=${route?.params?.id}&page=1&sessionId=${sessionId}`;
 
   const fetchData = useCallback(async () => {
     let res;

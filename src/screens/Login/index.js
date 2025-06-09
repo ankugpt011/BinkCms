@@ -121,10 +121,10 @@ const Login = () => {
     }
   
     // Check for uppercase email (optional)
-    if (trimmedEmail !== trimmedEmail.toLowerCase()) {
-      ToastAndroid.show('Email should be in lowercase', ToastAndroid.SHORT);
-      return;
-    }
+    // if (trimmedEmail !== trimmedEmail.toLowerCase()) {
+    //   ToastAndroid.show('Email should be in lowercase', ToastAndroid.SHORT);
+    //   return;
+    // }
   
     if (trimmedPassword === '') {
       ToastAndroid.show('Please enter your Password', ToastAndroid.SHORT);
