@@ -48,7 +48,7 @@ const useApi = ({method = 'GET', url = '', manual = false, cmsUrl = false}) => {
             console.log('reswe123456yr', res);
             break;
           case 'POST':
-            console.log('beforepostapi', finalUrl, body, config);
+            console.log('beforepostapi1', finalUrl, body, config);
 
             res = await axios.post(finalUrl, body, config);
             // ToastAndroid.show(

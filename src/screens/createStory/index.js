@@ -281,6 +281,15 @@ const CreateStory = () => {
 
     try {
       const response = await postStoryApi(body, CreateStoryApi(false));
+
+      console.log('responseresponse12345',response)
+
+      if(response?.error){
+        ToastAndroid.show(response?.errorMessage, ToastAndroid.SHORT);
+        setNewsModal(false);
+        return;
+      }
+
       if (response) {
         dispatch(
                   triggerStoryRefresh({
