@@ -1,7 +1,5 @@
 export const PartnerSid =()=> 'GcVY3jdBSZFsUy2wcsIjPLMfH2oA7YGKmiPiXPFTDa9yDMpXqeRN7QQ0HGEhIRAn'
 export const PartnerBaseUrl =()=> 'https://apis.hocalwire.com'
-
-
 export const PartnerCodeApi =(partnersCode)=> `/dev/h-api/partner/information?partner_code=${partnersCode}`
 export const LoginApi=(appid,partner,emailid,userpassword,action,profileId)=>`/dev/h-api/app-login?app=${appid}&partner=${partner}&login=${emailid}&password=${userpassword}&action=${action}&profileId=${profileId}`
 export const FetchStoryApi =(startIndex=0,count=0,sessionId,newsIds,state,fromDate,toDate,categoryIds,search,authorIds,tags)=> `/dev/h-api/newsv2?startIndex=${startIndex}&count=${count}&sessionId=${sessionId}&newsIds=${newsIds}&state=${state}&fromDate=${fromDate}&toDate=${toDate}&categoryIds=${categoryIds}&search=${search}&authorIds=${authorIds}&newsType=${tags}`

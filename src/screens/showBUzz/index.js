@@ -302,7 +302,7 @@ const ShowBuzz = () => {
         </Text>
         <Gap m1 />
         <RenderHtml
-          contentWidth={width}
+          contentWidth={width*.8}
           source={{html: item?.story}}
           tagsStyles={tagsStyles}
         />

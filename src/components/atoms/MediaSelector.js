@@ -469,7 +469,8 @@ const MediaSelector = ({
       const apiUrl = `/dev/h-api/update-image-caption?sessionId=${userData?.sessionId}&mediaId=${mediaId}&image_caption=${imageCaption}`;
       const res = await postData(null, apiUrl);
       console.log('resxcvbffvdcsxascdvfb', res);
-      ToastAndroid.show('caption successfully added', ToastAndroid.SHORT);
+      if(imageCaption?.length > 0){
+      ToastAndroid.show('caption successfully added', ToastAndroid.SHORT);}
       setShowImageDetailModal(false);
     } catch (error) {
       Alert.alert('Error', 'Failed to save caption');

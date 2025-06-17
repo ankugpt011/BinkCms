@@ -81,7 +81,8 @@ const NewsCard = ({id, image, author, title, date, grid, type, url, item}) => {
           id,
           action: status,
         });
-        // Alert.alert('Success', 'News marked as private');
+        ToastAndroid.show(status=='PRIVATE'?'News marked as private':'successfully Live', ToastAndroid.SHORT);
+        
         dispatch(
           triggerStoryRefresh({
             id,
@@ -404,10 +405,11 @@ const NewsCard = ({id, image, author, title, date, grid, type, url, item}) => {
                 </TouchableOpacity>
               </>
             )}
+            {type == 'Published'?
             <TouchableOpacity style={styles.menuItem} onPress={handleCopyUrl}>
               <VectorIcon name="link" size={18} color={Apptheme.color.black} />
               <Text style={styles.menuText}>Copy URL</Text>
-            </TouchableOpacity>
+            </TouchableOpacity>:null}
           </View>
         </Pressable>
       </Modal>
@@ -566,6 +568,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 8,
+    paddingBottom:16,
     width: '100%',
     shadowColor: '#000',
     shadowOpacity: 0.2,

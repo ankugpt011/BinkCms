@@ -9,6 +9,8 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
+  ToastAndroid,
+  Keyboard,
 } from 'react-native';
 import {RichEditor, RichToolbar, actions} from 'react-native-pell-rich-editor';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -18,6 +20,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import {useSelector} from 'react-redux';
 import useApi from '../../apiServices/UseApi';
 import Gap from './Gap';
+import NetInfo from '@react-native-community/netinfo';
 
 const {width: screenWidth} = Dimensions.get('window');
 
@@ -36,6 +39,7 @@ const TextEditor = ({
   const {postData} = useApi({method: 'POST', manual: true});
   const [linkUrl, setLinkUrl] = useState('');
   const [linkText, setLinkText] = useState('');
+  const [isConnected,setIsConnected]=useState(true)
 
   useEffect(() => {
     if (initialContent !== editorContent) {
@@ -50,7 +54,32 @@ const TextEditor = ({
     if (onChange) onChange(text);
   };
 
+ 
+
+   const checkInternet = async () => {
+    const state = await NetInfo.fetch();
+    console.log('checkInternet', state);
+    if (!state.isConnected) {
+      // Toast.show({
+      //   type: 'error',
+      //   text1: 'Offline Mode',
+      //   text2: 'This functionality is not available in offline mode',
+      // });
+      ToastAndroid.show(
+        'This functionality is not available in offline mode',
+        ToastAndroid.SHORT,
+      );
+      return false;
+    }
+    return true;
+  };
+
+
   const handleImageUpload = async () => {
+
+    const online = await checkInternet();
+    if (!online) return;
+   
     try {
       const image = await ImagePicker.openPicker({
         width: 500,
@@ -122,6 +151,8 @@ const TextEditor = ({
   };
 
   const handleHtmlSave = () => {
+     // Add this import at the top: import { Keyboard } from 'react-native'
+    
     setEditorContent(htmlContent);
     richText.current?.setContentHTML(htmlContent);
     setHtmlMode(false);
@@ -256,7 +287,7 @@ const TextEditor = ({
               <Gap m2/>
               <TouchableOpacity
                 style={[styles.modalButton, styles.saveButton]}
-                onPress={handleHtmlSave}>
+                onPress={()=>{ Keyboard.dismiss();handleHtmlSave()}}>
                 <Text style={[styles.saveButtonText,{color:'white'}]}>Apply HTML</Text>
               </TouchableOpacity>
             </View>
@@ -276,7 +307,7 @@ const TextEditor = ({
         }}>
         <View style={styles.modalOverlay}>
           <View style={styles.linkModal}>
-            <Text style={styles.modalLabel}>Enter Link URL:</Text>
+            <Text style={[styles.modalLabel,{color:'gray'}]}>Enter Link URL:</Text>
             <TextInput
               value={linkUrl}
               onChangeText={setLinkUrl}
@@ -287,7 +318,7 @@ const TextEditor = ({
               keyboardType="url"
             />
 
-            <Text style={styles.modalLabel}>Display Text (optional):</Text>
+            <Text style={[styles.modalLabel,{color:'gray'}]}>Display Text:</Text>
             <TextInput
               value={linkText}
               onChangeText={setLinkText}
@@ -304,13 +335,13 @@ const TextEditor = ({
                   setLinkUrl('');
                   setLinkText('');
                 }}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={{color:'black'}}>Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton]}
+                style={[styles.modalButton, styles.saveButton,{paddingHorizontal:10}]}
                 onPress={handleInsertLink}>
-                <Text style={styles.saveButtonText}>Insert</Text>
+                <Text style={{color:'white'}}>Insert</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -398,6 +429,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 10,
+    alignItems:'center'
   },
   htmlModal: {
     height: 370,
@@ -417,6 +449,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     margin: 0,
     padding: 10,
+    maxHeight:250,
     textAlignVertical: 'top',
     fontSize: 14,
     backgroundColor: 'black',

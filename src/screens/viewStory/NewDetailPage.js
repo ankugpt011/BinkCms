@@ -564,7 +564,7 @@ const NewDetailPage = () => {
           </Text>
           <Gap m8 />
           <RenderHtml
-            contentWidth={width}
+            contentWidth={width*.8}
             source={{html: data?.story}}
             tagsStyles={tagsStyles}
           />
