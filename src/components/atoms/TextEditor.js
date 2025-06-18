@@ -11,6 +11,8 @@ import {
   TextInput,
   ToastAndroid,
   Keyboard,
+  PermissionsAndroid,
+  Platform,
 } from 'react-native';
 import {RichEditor, RichToolbar, actions} from 'react-native-pell-rich-editor';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -21,6 +23,8 @@ import {useSelector} from 'react-redux';
 import useApi from '../../apiServices/UseApi';
 import Gap from './Gap';
 import NetInfo from '@react-native-community/netinfo';
+// import DocumentPicker from '@react-native-documents/picker';
+import {pick, types} from '@react-native-documents/picker';
 
 const {width: screenWidth} = Dimensions.get('window');
 
@@ -39,7 +43,7 @@ const TextEditor = ({
   const {postData} = useApi({method: 'POST', manual: true});
   const [linkUrl, setLinkUrl] = useState('');
   const [linkText, setLinkText] = useState('');
-  const [isConnected,setIsConnected]=useState(true)
+  const [isConnected, setIsConnected] = useState(true);
 
   useEffect(() => {
     if (initialContent !== editorContent) {
@@ -54,9 +58,7 @@ const TextEditor = ({
     if (onChange) onChange(text);
   };
 
- 
-
-   const checkInternet = async () => {
+  const checkInternet = async () => {
     const state = await NetInfo.fetch();
     console.log('checkInternet', state);
     if (!state.isConnected) {
@@ -74,12 +76,10 @@ const TextEditor = ({
     return true;
   };
 
-
   const handleImageUpload = async () => {
-
     const online = await checkInternet();
     if (!online) return;
-   
+
     try {
       const image = await ImagePicker.openPicker({
         width: 500,
@@ -151,8 +151,8 @@ const TextEditor = ({
   };
 
   const handleHtmlSave = () => {
-     // Add this import at the top: import { Keyboard } from 'react-native'
-    
+    // Add this import at the top: import { Keyboard } from 'react-native'
+
     setEditorContent(htmlContent);
     richText.current?.setContentHTML(htmlContent);
     setHtmlMode(false);
@@ -191,6 +191,137 @@ const TextEditor = ({
     }
   };
 
+  // const selectFile = async () => {
+  //   pick({
+  //     allowMultiSelection: true,
+  //     type: [types.pdf, types.docx],
+  //   })
+  //     .then(res => {
+  //       console.log('resres', res);
+
+  //       const allFilesArePdfOrDocx = res.every(file => file.hasRequestedType);
+  //       if (!allFilesArePdfOrDocx) {
+  //         console.log('allFilesArePdfOrDocx', allFilesArePdfOrDocx);
+  //         // tell the user they selected a file that is not a pdf or docx
+  //       }
+  //       console.log('resres', res);
+  //       // addResult(res)
+  //     })
+  //     .catch(error => {
+  //       console.error('Error picking files:', error);
+  //       // Handle the error appropriately (show alert, etc.)
+  //     });
+  // };
+
+  const selectFile = async () => {
+    const online = await checkInternet();
+    if (!online) return;
+
+    try {
+      // Pick the document (allow both PDF and DOCX)
+      const res = await pick({
+        allowMultiSelection: false,
+        type: [types.pdf, types.docx],
+      });
+
+      if (res && res.length > 0) {
+        const document = res[0];
+        console.log('document1234567543f', document);
+        // Show loading indicator
+        ToastAndroid.show('Uploading document...', ToastAndroid.SHORT);
+
+        // Upload the document to your server
+        const response = await uploadFileToServer(document);
+
+        if (response) {
+          // Create different HTML based on file type
+          let fileHTML = '';
+
+          if (document.type === 'application/pdf') {
+            // PDF - display in iframe
+            fileHTML = `
+            <div style="width: 100%; height: 500px; margin: 10px 0; overflow: hidden; border-radius: 8px; border: 1px solid #ccc;">
+              <iframe 
+                src="${response}" 
+                style="width: 100%; height: 100%; border: none;"
+                title="PDF Document"
+              ></iframe>
+            </div>
+            <p style="margin-top: 5px;">
+              <a href="${response}" target="_blank">Download PDF</a>
+            </p>
+          `;
+          } else {
+            // Other documents (like DOCX) - just show download link
+            fileHTML = `
+            <div style="margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+              <p>Document: <strong>${
+                document.name || 'Download file'
+              }</strong></p>
+              <p style="margin-top: 5px;">
+                <a href="${response}" target="_blank">Download Document</a>
+              </p>
+            </div>
+          `;
+          }
+          richText.current?.insertHTML(fileHTML);
+          ToastAndroid.show(
+            'Document uploaded successfully',
+            ToastAndroid.SHORT,
+          );
+        }
+      }
+    } catch (error) {
+      console.log('Document upload cancelled or failed:', error);
+      if (error.code !== 'E_PICKER_CANCELLED') {
+        Alert.alert('Document Upload', 'Could not upload document.');
+      }
+    }
+  };
+
+  const uploadFileToServer = async file => {
+    try {
+      const sessionId = userData?.sessionId;
+      const apiName = `/content/servlet/RDESController?command=rdm.FileUpload&sessionId=${sessionId}&uploadType=7&mediaSource=UPLOAD`;
+
+      let formData = new FormData();
+      formData.append('file', {
+        uri: file.uri,
+        type: file.mime || getMimeType(file.name),
+        name: file.name || file.uri.split('/').pop(),
+      });
+
+      const response = await postData(formData, apiName, {
+        'Content-Type': 'multipart/form-data',
+        Accept: 'application/json',
+      });
+
+      console.log('response12345', response);
+
+      return response;
+    } catch (err) {
+      console.error('Document upload failed:', err);
+      ToastAndroid.show('Document upload failed', ToastAndroid.SHORT);
+      return null;
+    }
+  };
+
+  
+  const getMimeType = filename => {
+    const extension = filename.split('.').pop().toLowerCase();
+    switch (extension) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'docx':
+        return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      case 'doc':
+        return 'application/msword';
+      default:
+        return 'application/octet-stream';
+    }
+  };  
+
+  
   return (
     <View style={styles.container}>
       <RichToolbar
@@ -227,6 +358,16 @@ const TextEditor = ({
         <TouchableOpacity onPress={() => setHtmlMode(true)}>
           <Icon
             name="code"
+            size={20}
+            color={htmlMode ? Apptheme.color.primary : '#000'}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => {
+            selectFile();
+          }}>
+          <Icon
+            name="picture-as-pdf"
             size={20}
             color={htmlMode ? Apptheme.color.primary : '#000'}
           />
@@ -280,15 +421,32 @@ const TextEditor = ({
             <Gap m1 />
             <View style={styles.htmlModalButtons}>
               <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton,{backgroundColor:Apptheme.color.boxOutline,alignItems:'center',justifyContent:'center',padding:5,borderRadius:4}]}
+                style={[
+                  styles.modalButton,
+                  styles.cancelButton,
+                  {
+                    backgroundColor: Apptheme.color.boxOutline,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: 5,
+                    borderRadius: 4,
+                  },
+                ]}
                 onPress={() => setHtmlMode(false)}>
-                <Text style={[styles.cancelButtonText,{color:'black'}]}>Cancel</Text>
+                <Text style={[styles.cancelButtonText, {color: 'black'}]}>
+                  Cancel
+                </Text>
               </TouchableOpacity>
-              <Gap m2/>
+              <Gap m2 />
               <TouchableOpacity
                 style={[styles.modalButton, styles.saveButton]}
-                onPress={()=>{ Keyboard.dismiss();handleHtmlSave()}}>
-                <Text style={[styles.saveButtonText,{color:'white'}]}>Apply HTML</Text>
+                onPress={() => {
+                  Keyboard.dismiss();
+                  handleHtmlSave();
+                }}>
+                <Text style={[styles.saveButtonText, {color: 'white'}]}>
+                  Apply HTML
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -307,7 +465,9 @@ const TextEditor = ({
         }}>
         <View style={styles.modalOverlay}>
           <View style={styles.linkModal}>
-            <Text style={[styles.modalLabel,{color:'gray'}]}>Enter Link URL:</Text>
+            <Text style={[styles.modalLabel, {color: 'gray'}]}>
+              Enter Link URL:
+            </Text>
             <TextInput
               value={linkUrl}
               onChangeText={setLinkUrl}
@@ -318,7 +478,9 @@ const TextEditor = ({
               keyboardType="url"
             />
 
-            <Text style={[styles.modalLabel,{color:'gray'}]}>Display Text:</Text>
+            <Text style={[styles.modalLabel, {color: 'gray'}]}>
+              Display Text:
+            </Text>
             <TextInput
               value={linkText}
               onChangeText={setLinkText}
@@ -335,13 +497,17 @@ const TextEditor = ({
                   setLinkUrl('');
                   setLinkText('');
                 }}>
-                <Text style={{color:'black'}}>Cancel</Text>
+                <Text style={{color: 'black'}}>Cancel</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton,{paddingHorizontal:10}]}
+                style={[
+                  styles.modalButton,
+                  styles.saveButton,
+                  {paddingHorizontal: 10},
+                ]}
                 onPress={handleInsertLink}>
-                <Text style={{color:'white'}}>Insert</Text>
+                <Text style={{color: 'white'}}>Insert</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -429,7 +595,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 10,
-    alignItems:'center'
+    alignItems: 'center',
   },
   htmlModal: {
     height: 370,
@@ -449,7 +615,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     margin: 0,
     padding: 10,
-    maxHeight:250,
+    maxHeight: 250,
     textAlignVertical: 'top',
     fontSize: 14,
     backgroundColor: 'black',

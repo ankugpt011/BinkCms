@@ -44,7 +44,7 @@ const CreateStory = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const userData = useSelector(state => state.login.userData);
   const isFocused = useIsFocused();
-  console.log('userDatauserDatauserDatauserData', userData);
+  // console.log('userDatauserDatauserDatauserData', userData);
   const [isConnected,setIsConnected]=useState(true)
   const [isDirty, setIsDirty] = useState(false);
   const [data, setData] = useState();
@@ -62,7 +62,7 @@ const CreateStory = () => {
   const [initialized, setInitialized] = useState(false);
   const navigation = useNavigation();
   const editValue = route.params?.data;
-  console.log('editValue1', editValue);
+  // console.log('editValue1', editValue);
 
   const generateId = existingId => {
     return (
@@ -93,17 +93,17 @@ const CreateStory = () => {
   });
 
   useEffect(() => {
-    console.log('abcdefghi12');
+    // console.log('abcdefghi12');
 
     const fetchData = async () => {
       try {
-        console.log('abcdefghi12: inside fetchData');
+        // console.log('abcdefghi12: inside fetchData');
 
         const net = await NetInfo.fetch();
-        console.log('abcdefghi13', net);
+        // console.log('abcdefghi13', net);
 
         const isConnected = net.isConnected;
-        console.log('isConnected', isConnected);
+        // console.log('isConnected', isConnected);
         // setNetStatus(isConnected)
 
         if (!isConnected) {
@@ -118,7 +118,7 @@ const CreateStory = () => {
         }
 
         const res = await callApi(null, Create_Story_PageLayout());
-        console.log('res12345678987654', res);
+        // console.log('res12345678987654', res);
         if (res) {
           await AsyncStorage.setItem('CreateStoryLayout', JSON.stringify(res));
           setData(res);
@@ -151,10 +151,10 @@ const CreateStory = () => {
     }
   }, [formValues, isDirty]);
 
-  console.log('formValuesformValuessdfvgbfvdcsx', formValues);
+  // console.log('formValuesformValuessdfvgbfvdcsx', formValues);
 
   const updateFormValue = (fieldKey, value) => {
-    console.log('formUpdate123');
+    // console.log('formUpdate123');
     setFormValues(prev => ({
       ...prev,
       [fieldKey]: value,
@@ -219,7 +219,7 @@ const CreateStory = () => {
 
   const handleSubmit = async (newState = 'DRAFT', extraFields = {}) => {
     const missingFields = validateMandatoryFields(data, formValues);
-    console.log('missingFields', missingFields);
+    // console.log('missingFields', missingFields);
 
     if (
       (newState == 'APPROVED' ||
@@ -231,7 +231,7 @@ const CreateStory = () => {
       return;
     }
 
-    console.log('Form data:', formValues);
+    // console.log('Form data:', formValues);
     const body = {
       ...formValues,
       ...extraFields,
@@ -241,7 +241,7 @@ const CreateStory = () => {
 
     const net = await NetInfo.fetch();
 
-    console.log('2345432body', body);
+    // console.log('2345432body', body);
 
     if (!net.isConnected) {
       const pendingQueue =
@@ -264,7 +264,7 @@ const CreateStory = () => {
         'pendingSubmissions',
         JSON.stringify(pendingQueue),
       );
-      console.log('pendingQueue', pendingQueue);
+      // console.log('pendingQueue', pendingQueue);
       ToastAndroid.show(
         'Saved locally. Will sync when online.',
         ToastAndroid.SHORT,
@@ -282,7 +282,7 @@ const CreateStory = () => {
     try {
       const response = await postStoryApi(body, CreateStoryApi(false));
 
-      console.log('responseresponse12345',response)
+      // console.log('responseresponse12345',response)
 
       if(response?.error){
         ToastAndroid.show(response?.errorMessage, ToastAndroid.SHORT);
@@ -328,7 +328,7 @@ const CreateStory = () => {
 
   const handleSchedule = selectedDate => {
     const formatted = formatDateTime(selectedDate);
-    console.log('Scheduled for:', formatted);
+    // console.log('Scheduled for:', formatted);
     setModalVisible(false);
     handleSubmit('SCHEDULED', {schedule_time: formatted});
     // do something with date (e.g., store in form state)
@@ -358,13 +358,13 @@ const CreateStory = () => {
   useEffect(() => {
     if (!isFocused) return;
     const interval = setInterval(async () => {
-      console.log('⏳ Auto-saving form...');
+      // console.log('⏳ Auto-saving form...');
       try {
         const autoSaveResponse = await postStoryApi(
           formValues,
           CreateStoryApi(true),
         );
-        console.log('✅ Auto-save response:', autoSaveResponse);
+        // console.log('✅ Auto-save response:', autoSaveResponse);
       } catch (error) {
         console.error('❌ Auto-save error:', error);
       }
@@ -374,12 +374,12 @@ const CreateStory = () => {
   }, [formValues,isFocused]); // Only re-run if formValues changes
 
   const offlineData = AsyncStorage.getItem('pendingSubmissions');
-  console.log('offlineData', offlineData);
+  // console.log('offlineData', offlineData);
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(async state => {
       if (state.isConnected && userData?.sessionId) {
-        console.log('state.isConnected', state.isConnected);
+        // console.log('state.isConnected', state.isConnected);
         setNetStatus(state.isConnected);
         if (state.isConnected) {
           SyncPendingSubmissions(postStoryApi);
@@ -392,10 +392,10 @@ const CreateStory = () => {
             'Online detected - syncing pending submissions...',
             ToastAndroid.SHORT,
           );
-          console.log('📡 Online detected - syncing pending submissions...');
+          // console.log('📡 Online detected - syncing pending submissions...');
 
           for (const form of queue) {
-            console.log('form234567898765432', form);
+            // console.log('form234567898765432', form);
             try {
               await postStoryApi(form, CreateStoryApi(false));
             } catch (err) {
@@ -455,7 +455,7 @@ const CreateStory = () => {
         });
       });
     });
-    console.log('initialValues', initialValues);
+    // console.log('initialValues', initialValues);
 
     setFormValues(initialValues);
     setInitialized(true);
@@ -536,7 +536,7 @@ const CreateStory = () => {
       </TouchableOpacity>
     );
   };
-  console.log('netStatus', netStatus);
+  // console.log('netStatus', netStatus);
 
   return (
     <SafeAreaView style={{flex: 1,backgroundColor:Apptheme.color.primary}}>
