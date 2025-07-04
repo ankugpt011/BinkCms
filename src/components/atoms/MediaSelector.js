@@ -13,6 +13,8 @@ import {
   Pressable,
   FlatList,
   ToastAndroid,
+  ActionSheetIOS,
+  Platform,
 } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 import VectorIcon from '../../assets/vectorIcons';
@@ -396,6 +398,12 @@ const MediaSelector = ({
 
   // Handle YouTube URL
   const handleSaveYoutube = () => {
+    // Check if YouTube URL is empty
+    if (!youtubeUrl.trim()) {
+      ToastAndroid.show('Please enter a YouTube URL', ToastAndroid.SHORT);
+      return;
+    }
+
     if (youtubeUrl.trim()) {
       let videoId = '';
       const url = youtubeUrl.trim();

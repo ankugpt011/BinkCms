@@ -12,9 +12,7 @@ const useApi = ({method = 'GET', url = '', manual = false, cmsUrl = false}) => {
   const [loading, setLoading] = useState(false);
 
   const {apiKey, apiEndPoint, partnerData} = useSelector(state => state.login);
-  const loginData = useSelector(state => state.login);
-  console.log('loginData', partnerData);
-
+  
   const callApi = useCallback(
     async (body = null, customUrl = null, customHeaders = {}) => {
       setLoading(true);

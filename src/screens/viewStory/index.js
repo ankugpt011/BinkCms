@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   FlatList,
   SafeAreaView,
+  Keyboard,
 } from 'react-native';
 import {
   MaterialTabBar,
@@ -222,6 +223,7 @@ const ViewStory = () => {
 
   // Clear all filters
   const handleClearFilters = () => {
+    Keyboard.dismiss(); // Dismiss the keyboard
     setSelectedCategory(null);
     setSelectedTag(null);
     setSearchText('');
@@ -242,6 +244,7 @@ const ViewStory = () => {
 
   // Apply all filters
   const applyFilters = () => {
+    Keyboard.dismiss(); // Dismiss the keyboard
     setAppliedFilters({
       category: selectedCategory?.value || null,
       search: searchText,

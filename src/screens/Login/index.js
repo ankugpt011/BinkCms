@@ -7,6 +7,7 @@ import {
   ToastAndroid,
   TouchableOpacity,
   View,
+  Keyboard,
 } from 'react-native';
 import React, {useState, useEffect} from 'react';
 import Apptheme from '../../assets/theme/Apptheme';
@@ -67,6 +68,8 @@ const Login = () => {
 
   const PartnerConfirm = async () => {
     console.log('hello', partnersCode.trim());
+    Keyboard.dismiss(); // Dismiss the keyboard when confirming partner code
+    
     if (partnersCode.trim() === '') {
       ToastAndroid.show('Please enter a partner code', ToastAndroid.SHORT);
       return;
@@ -104,7 +107,7 @@ const Login = () => {
   };
 
   const handleLogin = async () => {
-
+    Keyboard.dismiss();
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
   

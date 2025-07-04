@@ -199,6 +199,11 @@ const NewDetailPage = () => {
       fontStyle: 'italic',
       color: '#444',
     },
+    a: {
+      color: '#1976D2', // blue color for links
+      textDecorationLine: 'underline', // underline the link
+      fontWeight: '500',
+    },
   };
 
   const getCategoryName = categoryId => {
@@ -364,306 +369,358 @@ const NewDetailPage = () => {
       </View>
       <ScrollView style={{padding: Apptheme.spacing.marginHorizontal, flex: 1}}>
         <Gap m4 />
-        <View
-          style={{
-            padding: Apptheme.spacing.marginHorizontal,
-            elevation: 2,
-            backgroundColor: Apptheme.color.background,
-            borderRadius: 6,
-          }}>
-          <Text
-            style={[
-              FontStyle.headingSmall,
-              {
-                color: Apptheme.color.primary,
-                borderBottomWidth: 1,
-                borderColor: Apptheme.color.primary,
-                paddingBottom: 8,
-                flex: 1,
-              },
-            ]}>
-            Detail
-          </Text>
-          <Gap m8 />
-          <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
-            Heading
-          </Text>
-          <Gap m1 />
-
-          <Text style={FontStyle.labelLarge}>{data?.heading}</Text>
-          <Gap m3 />
-          <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
-            Description
-          </Text>
-          <Gap m1 />
-          <Text style={FontStyle.labelLarge}>{data?.description}</Text>
-          <Gap m3 />
-          <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
-            News Time
-          </Text>
-          <Gap m1 />
-          <Text style={FontStyle.labelLarge}>
-            {formatToIST(data?.date_updated ||data?.date_news ||  data?.date_created)}
-          </Text>
-          <Gap m3 />
-          <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
-            Author
-          </Text>
-          <Gap m1 />
-          <Text style={FontStyle.labelLarge}>{data?.authorName}</Text>
-          <Gap m3 />
-          {/* <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
-            Credit
-          </Text>
-          <Gap m1 />
-          <Text style={FontStyle.labelLarge}>{data?.authorName}</Text>
-          <Gap m3 /> */}
-          <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
-            Main Category
-          </Text>
-          <Gap m1 />
-          <Text style={FontStyle.labelLarge}>
-            {getCategoryName(data?.category||data?.maincategory) ||
-              'No category found'}
-          </Text>
-          <Gap m3 />
-          <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
-            Other Categories
-          </Text>
-          <Gap m1 />
-          <Text style={FontStyle.labelLarge}>
-            {/* {getOtherCategoryNames(data?.categories)||getOtherCategoryNames(data?.otherCategoryIds)
-              } */}
-              {getOtherCategoryNames(data?.categories||data?.otherCategoryIds)}
-          </Text>
-          <Gap m3 />
-          <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
-            Location
-          </Text>
-          <Gap m1 />
-          <Text style={FontStyle.labelLarge}>{data?.location}</Text>
-        </View>
+        {(data?.heading || data?.description || data?.date_updated || data?.date_news || data?.date_created || data?.authorName || data?.category || data?.maincategory || data?.categories || data?.otherCategoryIds || data?.location) && (
+          <View
+            style={{
+              padding: Apptheme.spacing.marginHorizontal,
+              elevation: 2,
+              backgroundColor: Apptheme.color.background,
+              borderRadius: 6,
+            }}>
+            <Text
+              style={[
+                FontStyle.headingSmall,
+                {
+                  color: Apptheme.color.primary,
+                  borderBottomWidth: 1,
+                  borderColor: Apptheme.color.primary,
+                  paddingBottom: 8,
+                  flex: 1,
+                },
+              ]}>
+              Detail
+            </Text>
+            <Gap m8 />
+            {data?.heading && (
+              <>
+                <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
+                  Heading
+                </Text>
+                <Gap m1 />
+                <Text style={FontStyle.labelLarge}>{data?.heading}</Text>
+                <Gap m3 />
+              </>
+            )}
+            {data?.description && (
+              <>
+                <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
+                  Description
+                </Text>
+                <Gap m1 />
+                <Text style={FontStyle.labelLarge}>{data?.description}</Text>
+                <Gap m3 />
+              </>
+            )}
+            {(data?.date_updated || data?.date_news || data?.date_created) && (
+              <>
+                <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
+                  News Time
+                </Text>
+                <Gap m1 />
+                <Text style={FontStyle.labelLarge}>
+                  {formatToIST(data?.date_updated ||data?.date_news ||  data?.date_created)}
+                </Text>
+                <Gap m3 />
+              </>
+            )}
+            {data?.authorName && (
+              <>
+                <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
+                  Author
+                </Text>
+                <Gap m1 />
+                <Text style={FontStyle.labelLarge}>{data?.authorName}</Text>
+                <Gap m3 />
+              </>
+            )}
+            {/* <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
+              Credit
+            </Text>
+            <Gap m1 />
+            <Text style={FontStyle.labelLarge}>{data?.authorName}</Text>
+            <Gap m3 /> */}
+            {(data?.category || data?.maincategory) && (
+              <>
+                <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
+                  Main Category
+                </Text>
+                <Gap m1 />
+                <Text style={FontStyle.labelLarge}>
+                  {getCategoryName(data?.category||data?.maincategory) ||
+                    'No category found'}
+                </Text>
+                <Gap m3 />
+              </>
+            )}
+            {(data?.categories || data?.otherCategoryIds) && (
+              <>
+                <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
+                  Other Categories
+                </Text>
+                <Gap m1 />
+                <Text style={FontStyle.labelLarge}>
+                  {getOtherCategoryNames(data?.categories||data?.otherCategoryIds)}
+                </Text>
+                <Gap m3 />
+              </>
+            )}
+            {data?.location && (
+              <>
+                <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
+                  Location
+                </Text>
+                <Gap m1 />
+                <Text style={FontStyle.labelLarge}>{data?.location}</Text>
+                <Gap m3 />
+              </>
+            )}
+          </View>
+        )}
         <Gap m4 />
-        <View
-          style={{
-            padding: Apptheme.spacing.marginHorizontal,
-            elevation: 2,
-            backgroundColor: Apptheme.color.background,
-            borderRadius: 6,
-          }}>
-          <Text
-            style={[
-              FontStyle.headingSmall,
-              {
-                color: Apptheme.color.primary,
-                borderBottomWidth: 1,
-                borderColor: Apptheme.color.primary,
-                paddingBottom: 8,
-                flex: 1,
-              },
-            ]}>
-            Other Details
-          </Text>
-          <Gap m8 />
-          <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
-            Tags
-          </Text>
-          <Gap m1 />
-
-          <Text style={FontStyle.labelLarge}>{data?.tags}</Text>
-          <Gap m3 />
-          <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
-            Keywords
-          </Text>
-          <Gap m1 />
-          <Text style={FontStyle.labelLarge}>{data?.keywords}</Text>
-          <Gap m3 />
-          {route?.params?.type === 'Draft' || !route?.params?.id ? null :
-          <>
-          <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
-            News URL
-          </Text>
-          <Gap m1 />
-          <Text
-            style={[
-              FontStyle.labelLarge,
-              {color: Apptheme.color.primary, textDecorationLine: 'underline'},
-            ]}>
-            {data?.url}
-          </Text>
-
-          <Gap m3 />
-          </>}
-          <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
-            Cover Images
-          </Text>
-          <Gap m1 />
-          {route?.params?.type === 'Draft' ? (
-            <View style={{flexDirection: 'row', gap: 10}}>
-              <FlatList
-                data={data?.mediaIds?.split(',')}
-                horizontal
-                renderItem={(item, index) => (
-                  <RenderImage item={item} index={index} />
+        {(data?.tags || data?.keywords || (route?.params?.type !== 'Draft' && route?.params?.id && data?.url) || ((route?.params?.type === 'Draft' && data?.mediaIds) || (route?.params?.type !== 'Draft' && data?.media?.length > 0)) || (route?.params?.type === 'Draft' && data?.extraMediaId)) && (
+          <View
+            style={{
+              padding: Apptheme.spacing.marginHorizontal,
+              elevation: 2,
+              backgroundColor: Apptheme.color.background,
+              borderRadius: 6,
+            }}>
+            <Text
+              style={[
+                FontStyle.headingSmall,
+                {
+                  color: Apptheme.color.primary,
+                  borderBottomWidth: 1,
+                  borderColor: Apptheme.color.primary,
+                  paddingBottom: 8,
+                  flex: 1,
+                },
+              ]}>
+              Other Details
+            </Text>
+            <Gap m8 />
+            {data?.tags && (
+              <>
+                <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
+                  Tags
+                </Text>
+                <Gap m1 />
+                <Text style={FontStyle.labelLarge}>{data?.tags}</Text>
+                <Gap m3 />
+              </>
+            )}
+            {data?.keywords && (
+              <>
+                <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
+                  Keywords
+                </Text>
+                <Gap m1 />
+                <Text style={FontStyle.labelLarge}>{data?.keywords}</Text>
+                <Gap m3 />
+              </>
+            )}
+            {(route?.params?.type !== 'Draft' && route?.params?.id && data?.url) && (
+              <>
+                <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
+                  News URL
+                </Text>
+                <Gap m1 />
+                <Text
+                  style={[
+                    FontStyle.labelLarge,
+                    {color: Apptheme.color.primary, textDecorationLine: 'underline'},
+                  ]}>
+                  {data?.url}
+                </Text>
+                <Gap m3 />
+              </>
+            )}
+            {((route?.params?.type === 'Draft' && data?.mediaIds) || (route?.params?.type !== 'Draft' && data?.media?.length > 0)) && (
+              <>
+                <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
+                  Cover Images
+                </Text>
+                <Gap m1 />
+                {route?.params?.type === 'Draft' ? (
+                  <View style={{flexDirection: 'row', gap: 10}}>
+                    <FlatList
+                      data={data?.mediaIds?.split(',')}
+                      horizontal
+                      renderItem={(item, index) => (
+                        <RenderImage item={item} index={index} />
+                      )}
+                    />
+                  </View>
+                ) : (
+                  <FlatList
+                    data={data?.media}
+                    horizontal
+                    renderItem={(item, index) => (
+                      <RenderNewsImage item={item} index={index} />
+                    )}
+                  />
                 )}
-              />
-            </View>
-          ) : (
-            <FlatList
-              data={data?.media}
-              horizontal
-              renderItem={(item, index) => (
-                <RenderNewsImage item={item} index={index} />
-              )}
+                <Gap m3 />
+              </>
+            )}
+            {(route?.params?.type === 'Draft' && data?.extraMediaId) && (
+              <>
+                <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
+                  Featured Image
+                </Text>
+                <Gap m1 />
+                <View style={{flexDirection: 'row', gap: 10}}>
+                  <FlatList
+                    data={data?.extraMediaId?.split(',')}
+                    horizontal
+                    renderItem={(item, index) => (
+                      <RenderImage item={item} index={index} />
+                    )}
+                  />
+                </View>
+                <Gap m3 />
+              </>
+            )}
+
+            <Gap m3 />
+          </View>
+        )}
+        <Gap m4 />
+
+        {data?.story && (
+          <View
+            style={{
+              padding: Apptheme.spacing.marginHorizontal,
+              elevation: 2,
+              backgroundColor: Apptheme.color.background,
+              borderRadius: 6,
+            }}>
+            <Text
+              style={[
+                FontStyle.headingSmall,
+                {
+                  color: Apptheme.color.primary,
+                  borderBottomWidth: 1,
+                  borderColor: Apptheme.color.primary,
+                  paddingBottom: 8,
+                  flex: 1,
+                },
+              ]}>
+              Detailed Story
+            </Text>
+            <Gap m8 />
+            <RenderHtml
+              contentWidth={width*.8}
+              source={{html: data?.story}}
+              tagsStyles={tagsStyles}
             />
-          )}
-          {route?.params?.type === 'Draft' ? (
-            <>
-              <Gap m3 />
-
-              <Text style={[FontStyle.label, {color: Apptheme.color.subText}]}>
-                Featured Image
-              </Text>
-              <Gap m1 />
-
-              <View style={{flexDirection: 'row', gap: 10}}>
-                <FlatList
-                  data={data?.extraMediaId?.split(',')}
-                  horizontal
-                  renderItem={(item, index) => (
-                    <RenderImage item={item} index={index} />
-                  )}
-                />
+            {/* <Text style={FontStyle.labelLarge}>
+            {data?.story}
+            </Text> */}
+          </View>
+        )}
+        <Gap m4 />
+        {((data?.newsId || data?.uid) || data?.heading || (data?.date_news || data?.date_created || data?.date_updated) || data?.createdby_name) && (
+          <View
+            style={{
+              padding: Apptheme.spacing.marginHorizontal,
+              elevation: 2,
+              backgroundColor: Apptheme.color.background,
+              borderRadius: 6,
+            }}>
+            <Text
+              style={[
+                FontStyle.headingSmall,
+                {
+                  color: Apptheme.color.primary,
+                  borderBottomWidth: 1,
+                  borderColor: Apptheme.color.primary,
+                  paddingBottom: 8,
+                },
+              ]}>
+              Story Details: (Before Publish)
+            </Text>
+            <Gap m8 />
+            {(data?.newsId || data?.uid) && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginBottom: 8,
+                }}>
+                <Text
+                  style={[
+                    FontStyle.labelLarge,
+                    {flex: 1, color: Apptheme.color.subText},
+                  ]}>
+                  ID
+                </Text>
+                <Text style={[FontStyle.labelLarge, {flex: 3}]}>
+                  {data?.newsId || data?.uid}
+                </Text>
               </View>
-            </>
-          ) : null}
-
-          <Gap m3 />
-        </View>
-        <Gap m4 />
-
-        <View
-          style={{
-            padding: Apptheme.spacing.marginHorizontal,
-            elevation: 2,
-            backgroundColor: Apptheme.color.background,
-            borderRadius: 6,
-          }}>
-          <Text
-            style={[
-              FontStyle.headingSmall,
-              {
-                color: Apptheme.color.primary,
-                borderBottomWidth: 1,
-                borderColor: Apptheme.color.primary,
-                paddingBottom: 8,
-                flex: 1,
-              },
-            ]}>
-            Detailed Story
-          </Text>
-          <Gap m8 />
-          <RenderHtml
-            contentWidth={width*.8}
-            source={{html: data?.story}}
-            tagsStyles={tagsStyles}
-          />
-          {/* <Text style={FontStyle.labelLarge}>
-          {data?.story}
-          </Text> */}
-        </View>
-        <Gap m4 />
-        <View
-          style={{
-            padding: Apptheme.spacing.marginHorizontal,
-            elevation: 2,
-            backgroundColor: Apptheme.color.background,
-            borderRadius: 6,
-          }}>
-          <Text
-            style={[
-              FontStyle.headingSmall,
-              {
-                color: Apptheme.color.primary,
-                borderBottomWidth: 1,
-                borderColor: Apptheme.color.primary,
-                paddingBottom: 8,
-              },
-            ]}>
-            Story Details: (Before Publish)
-          </Text>
-          <Gap m8 />
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              marginBottom: 8,
-            }}>
-            <Text
-              style={[
-                FontStyle.labelLarge,
-                {flex: 1, color: Apptheme.color.subText},
-              ]}>
-              ID
-            </Text>
-            <Text style={[FontStyle.labelLarge, {flex: 3}]}>
-              {data?.newsId || data?.uid}
-            </Text>
+            )}
+            {data?.heading && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginBottom: 8,
+                }}>
+                <Text
+                  style={[
+                    FontStyle.labelLarge,
+                    {flex: 1, color: Apptheme.color.subText},
+                  ]}>
+                  Heading
+                </Text>
+                <Text style={[FontStyle.labelLarge, {flex: 3}]}>
+                  {data?.heading}
+                </Text>
+              </View>
+            )}
+            {(data?.date_news || data?.date_created || data?.date_updated) && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginBottom: 8,
+                }}>
+                <Text
+                  style={[
+                    FontStyle.labelLarge,
+                    {flex: 1, color: Apptheme.color.subText},
+                  ]}>
+                  Date Created
+                </Text>
+                <Text style={[FontStyle.labelLarge, {flex: 3}]}>
+                  {formatToIST(
+                    data?.date_news || data?.date_created || data?.date_updated,
+                  )}
+                </Text>
+              </View>
+            )}
+            {data?.createdby_name && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  marginBottom: 8,
+                }}>
+                <Text
+                  style={[
+                    FontStyle.labelLarge,
+                    {flex: 1, color: Apptheme.color.subText},
+                  ]}>
+                  Created By
+                </Text>
+                <Text style={[FontStyle.labelLarge, {flex: 3}]}>
+                  {data?.createdby_name}
+                </Text>
+              </View>
+            )}
           </View>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              marginBottom: 8,
-            }}>
-            <Text
-              style={[
-                FontStyle.labelLarge,
-                {flex: 1, color: Apptheme.color.subText},
-              ]}>
-              Heading
-            </Text>
-            <Text style={[FontStyle.labelLarge, {flex: 3}]}>
-              {data?.heading}
-            </Text>
-          </View>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              marginBottom: 8,
-            }}>
-            <Text
-              style={[
-                FontStyle.labelLarge,
-                {flex: 1, color: Apptheme.color.subText},
-              ]}>
-              Date Created
-            </Text>
-            <Text style={[FontStyle.labelLarge, {flex: 3}]}>
-              {formatToIST(
-                data?.date_news || data?.date_created || data?.date_updated,
-              )}
-            </Text>
-          </View>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              marginBottom: 8,
-            }}>
-            <Text
-              style={[
-                FontStyle.labelLarge,
-                {flex: 1, color: Apptheme.color.subText},
-              ]}>
-              Created By
-            </Text>
-            <Text style={[FontStyle.labelLarge, {flex: 3}]}>
-              {data?.createdby_name}
-            </Text>
-          </View>
-        </View>
+        )}
 
         <Gap m4 />
         {/* {route?.params?.type === 'Draft' || !route?.params?.id ? null : (

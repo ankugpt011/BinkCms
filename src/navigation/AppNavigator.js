@@ -18,7 +18,7 @@ const AppNavigator = () => {
   const userData = useSelector(state => state.login.userData);
   const isLoggedIn = !!userData?.sessionId;
   return (
-    // <SafeAreaView style={{flex:1}} bac>
+    <SafeAreaView style={{flex:1}} >
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
@@ -42,7 +42,7 @@ const AppNavigator = () => {
       <Stack.Screen name={RouteName.EDIT_BUZZ} component={EditBuzz} />
 
     </Stack.Navigator>
-    // </SafeAreaView>
+    </SafeAreaView>
   );
 };
 

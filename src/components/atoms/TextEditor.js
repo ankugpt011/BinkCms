@@ -36,6 +36,8 @@ const TextEditor = ({
 }) => {
   const richText = useRef();
   const [editorContent, setEditorContent] = useState(initialContent || '');
+  const {apiKey, apiEndPoint, partnerData} = useSelector(state => state.login);
+
   const [htmlContent, setHtmlContent] = useState(initialContent || '');
   const [linkModalVisible, setLinkModalVisible] = useState(false);
   const userData = useSelector(state => state.login.userData);
@@ -44,6 +46,9 @@ const TextEditor = ({
   const [linkUrl, setLinkUrl] = useState('');
   const [linkText, setLinkText] = useState('');
   const [isConnected, setIsConnected] = useState(true);
+
+
+  console.log('apiKey123456789', apiKey, apiEndPoint, partnerData);
 
   useEffect(() => {
     if (initialContent !== editorContent) {
@@ -191,27 +196,6 @@ const TextEditor = ({
     }
   };
 
-  // const selectFile = async () => {
-  //   pick({
-  //     allowMultiSelection: true,
-  //     type: [types.pdf, types.docx],
-  //   })
-  //     .then(res => {
-  //       console.log('resres', res);
-
-  //       const allFilesArePdfOrDocx = res.every(file => file.hasRequestedType);
-  //       if (!allFilesArePdfOrDocx) {
-  //         console.log('allFilesArePdfOrDocx', allFilesArePdfOrDocx);
-  //         // tell the user they selected a file that is not a pdf or docx
-  //       }
-  //       console.log('resres', res);
-  //       // addResult(res)
-  //     })
-  //     .catch(error => {
-  //       console.error('Error picking files:', error);
-  //       // Handle the error appropriately (show alert, etc.)
-  //     });
-  // };
 
   const selectFile = async () => {
     const online = await checkInternet();
@@ -233,23 +217,29 @@ const TextEditor = ({
         // Upload the document to your server
         const response = await uploadFileToServer(document);
 
+        console.log('response1234567895432', response);
+
         if (response) {
           // Create different HTML based on file type
           let fileHTML = '';
 
           if (document.type === 'application/pdf') {
-            // PDF - display in iframe
+            // Use dynamic apiEndPoint and response.url for embed and download
+            const embedUrl = `${apiEndPoint}/h-pdf-viewer?embedded=true&url=${encodeURIComponent(response.url)}`;
+
+            // <div style="width: 100%; height: 500px; margin: 10px 0; overflow: hidden; border-radius: 8px; border: 1px solid #ccc;">
+            //   <embed src="${embedUrl}" width="100%" height="500" type="application/pdf"></embed>
+            // </div>
             fileHTML = `
-            <div style="width: 100%; height: 500px; margin: 10px 0; overflow: hidden; border-radius: 8px; border: 1px solid #ccc;">
-              <iframe 
-                src="${response}" 
-                style="width: 100%; height: 100%; border: none;"
-                title="PDF Document"
-              ></iframe>
+           <div style="margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+              <p>Document: <strong>${
+                document.name || 'Download file'
+              }</strong></p>
+              <p style="margin-top: 5px;">
+                <a href="${response.url}" target="_blank">Download Document</a>
+              </p>
             </div>
-            <p style="margin-top: 5px;">
-              <a href="${response}" target="_blank">Download PDF</a>
-            </p>
+             <p><br/></p>
           `;
           } else {
             // Other documents (like DOCX) - just show download link
@@ -262,6 +252,7 @@ const TextEditor = ({
                 <a href="${response}" target="_blank">Download Document</a>
               </p>
             </div>
+             <p><br/></p>
           `;
           }
           richText.current?.insertHTML(fileHTML);
@@ -282,7 +273,11 @@ const TextEditor = ({
   const uploadFileToServer = async file => {
     try {
       const sessionId = userData?.sessionId;
-      const apiName = `/content/servlet/RDESController?command=rdm.FileUpload&sessionId=${sessionId}&uploadType=7&mediaSource=UPLOAD`;
+      const apiName = `/content/servlet/RDESController?command=rdm.FileUpload&sessionId=${sessionId}&uploadType=20&mediaSource=UPLOAD&response_format=json`;
+
+
+      console.log('file123456789', file);
+
 
       let formData = new FormData();
       formData.append('file', {
